@@ -1,11 +1,11 @@
 #include "listxt.h"
+#include "str.h"
 
 int
 listxt_getline(buffer *b, stralloc *sa, genalloc *ga)
 {
-	size_t i;
-	size_t n;
-	int r;
+	size_t i = 0;
+	size_t n = 0;
 	char *s;
 
 	if (!buffer_getline(b, sa)) return 0;
@@ -13,12 +13,13 @@ listxt_getline(buffer *b, stralloc *sa, genalloc *ga)
 
 	s = sa->s;
 	n = sa->n;
-	do {
+	while ((i = listxt_scan(s)) < n) {
 		if (!genalloc_catx(char *, ga, s)) return 0;
-		if (s[i] == '\n' || s[i] == ':') s[i] = 0;
+		s[i] = 0;
 		n -= i + 1;
 		s += i + 1;
-	} while ((i = listxt_scan(s)) < n);
+	}
+	if (!genalloc_catx(char *, ga, s)) return 0;
 
-	return 0;
+	return 1;
 }

@@ -1,5 +1,5 @@
-CFLAGS = -I'include' -static -Wall -Wextra -Wno-unused-parameter
-                                           #XXX: remove it once the project finished
+CFLAGS = -g -I'include' -static -Wall -Wextra -Wno-unused-parameter
+                                              #XXX: remove it once the project finished
 
 bin = passsafe-add passsafe-check passsafe-del passsafe-list
 
@@ -23,6 +23,7 @@ leapsecs.dat: leapsecs leapsecs.txt
 include libarg/lib.mk
 include libbuffer/lib.mk
 include libfd/lib.mk
+include libfmt/lib.mk
 include libint/lib.mk
 include liblistxt/lib.mk
 include liblog/lib.mk
@@ -31,11 +32,13 @@ include libopen/lib.mk
 include libstr/lib.mk
 include libstralloc/lib.mk
 
-lib = liblistxt.a libarg.a libopen.a liblog.a libbuffer.a libfd.a libstralloc.a libmem.a libint.a libstr.a
+lib = liblistxt.a libopen.a liblog.a libbuffer.a libfd.a libstralloc.a libmem.a libfmt.a libstr.a libint.a libarg.a
 
 # bin/make-bin *.c
 
-inc = include/arg.h include/buffer.h include/fd.h include/fmt.h include/genalloc.h include/int.h include/listxt.h include/log.h include/mem.h include/open.h include/str.h include/stralloc.h
+inc = include/arg.h include/buffer.h include/env.h include/fd.h include/fmt.h include/genalloc.h include/int.h include/listxt.h include/log.h include/mem.h include/open.h include/str.h include/stralloc.h
+
+bin: passsafe-add passsafe-check passsafe-del passsafe-list
 
 passsafe-add: passsafe-add.o ${lib} ${inc}
 	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib}
