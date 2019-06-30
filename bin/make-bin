@@ -1,0 +1,17 @@
+#!/bin/sh
+
+
+cat <<__EOF__
+
+inc = $(echo include/*.h)
+
+bin: $(echo "$@" | sed 's/\.c//g')
+__EOF__
+
+for x; do x=${x%.c}; cat <<__EOF__
+
+$x: $x.o \${lib} \${inc}
+	\${CC} \${LFLAGS} -o \${@} \${@}.o \${lib}
+__EOF__
+done
+

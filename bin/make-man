@@ -1,0 +1,119 @@
+#!/bin/sh
+
+if [ "$#" != 3 ]; then
+	echo "usage: ${0##*/} <section> <name> <description>"
+	exit 1
+fi
+
+section="$1"
+name="$2"
+description="$3"
+author=${NAME:-<author-name>}
+mail=${EMAIL:-<author-email>}
+
+case "$section" in (*) cat <<EOF ;; esac
+.Dt $(echo "$name" | tr a-z A-Z) $section
+.Dd $(date +'$Mdocdate: %B %d %Y$')
+.Os
+.
+.
+.Sh NAME
+.
+.Nm $name
+.Nd $description
+.
+.
+.Sh SYNOPSIS
+.
+.Nm $name
+.Op Fl options
+.Ar
+.
+.
+.Sh DESCRIPTION
+.
+The
+.Nm
+utility
+.
+EOF
+case "$section" in (9) cat <<EOF ;; esac
+.
+.
+.Sh CONTEXT
+.
+EOF
+case "$section" in (2|3|9) cat <<EOF ;; esac
+.
+.
+.Sh RETURN VALUES
+.
+.Rv -std
+.
+EOF
+case "$section" in (1|6|7|8) cat <<EOF ;; esac
+.
+.
+.Sh ENVIRONMENT
+.
+EOF
+cat <<EOF
+.
+.
+.Sh FILES
+.
+EOF
+case "$section" in (1|6|8) cat <<EOF ;; esac
+.
+.
+.Sh EXIT STATUS
+.
+.Ex -std
+EOF
+cat <<EOF
+.
+.
+.Sh EXAMPLES
+.
+EOF
+case "$section" in (1|4|6|7|8) cat <<EOF ;; esac
+.
+.
+.Sh DIAGNOSTICS
+.
+EOF
+case "$section" in (2|3|4) cat <<EOF ;; esac
+.
+.
+.Sh ERRORS
+.
+EOF
+cat <<EOF
+.
+.
+.Sh SEE ALSO
+.
+.Xr foobar 1
+.
+.
+.Sh STANDARDS
+.
+.
+.
+.Sh HISTORY
+.
+.
+.
+.Sh AUTHORS
+.
+.An $author
+.Aq Mt $mail
+.
+.
+.Sh CAVEATS
+.
+.
+.
+.Sh BUGS
+.
+EOF
