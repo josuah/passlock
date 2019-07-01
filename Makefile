@@ -1,5 +1,9 @@
-CFLAGS = -g -I'include' -static -Wall -Wextra -Wno-unused-parameter
-                                              #XXX: remove it once the project finished
+LIBSODIUM_LIB = ${PREFIX}/lib
+LIBSODIUM_INC = ${PREFIX}/include
+
+W = -Wall -Wextra -Wno-unused-parameter
+CFLAGS = -g -I'include' -I'${LIBSODIUM_INC}' -static $W
+LFLAGS = -L${LIBSODIUM_LIB} -lsodium
 
 bin = passsafe-add passsafe-check passsafe-del passsafe-list
 

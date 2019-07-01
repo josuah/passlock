@@ -8,6 +8,7 @@
 #include "open.h"
 #include "stralloc.h"
 #include <stdio.h>  /* for rename(2) */
+#include <sodium.h>
 
 char *flag_f = NULL;
 
@@ -22,6 +23,7 @@ main(int argc, char **argv)
 {
 	char *user;
 	char *path;
+	char hash[crypto_pwhash_STRBYTES];
 	char *gs[3];
 	char bs[1024];
 	genalloc ga = GENALLOC_INIT(gs);
@@ -48,19 +50,29 @@ main(int argc, char **argv)
 	if (!listxt_get(flag_f, &line, &ga, 0, user)) die_open(flag_f);
 	if (genalloc_len(char *, &ga) > 0) die_exist(user, flag_f);
 
-	if (!buffer_getline(buffer_0, &pass)) die_read("stdin");
-	stralloc_chomp(&pass);
-	if (!stralloc_cat0(&pass)) die_nomem();
-	if (!listxt_valid(pass.s)) die_invalid("passphrase");
-
 	if ((fd = open_read(flag_f)) == -1) die_open(flag_f);
 	if (!listxt_tmp(&tmp, flag_f)) die_nomem();
 	if ((b.fd = open_truncate(tmp.s)) == -1) die_open(tmp.s);
+	log_d5("copying \"",flag_f,"\" to \"",tmp.s,"\"");
 	if (fd_dump(b.fd, fd) == -1) die_copy();
+
+	if (!buffer_puts(buffer_2, "Enter password: ")) die_write();
+	if (!buffer_flush(buffer_2)) die_write();
+	if (!buffer_getline(buffer_0, &pass)) die_read("stdin");
+	stralloc_chomp(&pass);
+	if (!stralloc_cat0(&pass)) die_nomem();
+
+	log_d1("hashing password");
+	char num[50];
+	num[fmt_long(num, pass.n)] = '\0';
+	log_i3(num, ", ", pass.s);
+	if (crypto_pwhash_str(hash, pass.s, pass.n,
+		crypto_pwhash_OPSLIMIT_MODERATE,
+		crypto_pwhash_MEMLIMIT_MODERATE) != 0) die_nomem();
 
 	if (!buffer_puts(&b, user)) die_write();
 	if (!buffer_puts(&b, ":")) die_write();
-	if (!buffer_puts(&b, pass.s)) die_write();
+	if (!buffer_puts(&b, hash)) die_write();
 	if (!buffer_puts(&b, ":")) die_write();
 	if (!buffer_puts(&b, path)) die_write();
 	if (!buffer_puts(&b, "\n")) die_write();
