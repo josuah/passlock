@@ -48,14 +48,11 @@ main(int argc, char **argv)
 	if ((bi.fd = open_read(flag_f)) == -1) die_open(flag_f);
 	if ((bo.fd = open_truncate(tmp.s)) == -1) die_open(tmp.s);
 
-	log_i1("before");
 	while (listxt_getline(&bi, &line, &ga)) {
-		log_i1(genalloc_s(char *, &ga)[0]);
 		if (genalloc_len(char *, &ga) == 0) continue;
 		if (str_equal(genalloc_s(char *, &ga)[0], user)) continue;
 		if (!listxt_put(&bo, &ga)) die_write();
 	}
-	log_es1("after");
 	if (!buffer_flush(&bo)) die_write();
 
 	if (rename(tmp.s, flag_f) == -1) die_rename(tmp.s, flag_f);

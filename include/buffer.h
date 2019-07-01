@@ -31,6 +31,7 @@ int     buffer_fill(buffer *);
 int     buffer_flush(buffer *);
 int     buffer_get(buffer *, char *, size_t);
 int     buffer_gettoken(buffer *, stralloc *, char);
+int     buffer_pad(buffer *, char const *, size_t, char);
 int     buffer_put(buffer *, const char *, size_t);
 int     buffer_putc(buffer *, char);
 int     buffer_putn(buffer *, unsigned long);
