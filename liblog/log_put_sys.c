@@ -8,7 +8,7 @@ log_put_sys(int level, char const *type, int argc, ...)
 {
 	va_list a;
 
-	if (level < log_level) return;
+	if (level > log_level) return;
 	va_start(a, argc);
 	buffer_puts(buffer_2, type);
 	buffer_puts(buffer_2, ": ");

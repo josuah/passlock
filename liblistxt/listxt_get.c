@@ -1,5 +1,6 @@
 #include "listxt.h"
 #include "buffer.h"
+#include "fd.h"
 #include "open.h"
 #include "stralloc.h"
 
@@ -11,11 +12,12 @@ listxt_get(char *path, stralloc *sa, genalloc *ga, size_t n, char *s)
 
 	if ((b.fd = open_read(path)) == -1) return 0;
 
-	while (stralloc_zero(sa), listxt_getline(&b, sa, ga)) {
+	while (listxt_getline(&b, sa, ga)) {
 		if (genalloc_len(char *, ga) < n) continue;
-		if (str_equal(genalloc_s(char *, ga)[n], s)) return 1;
+		if (str_equal(genalloc_s(char *, ga)[n], s)) goto end;
 	}
 	genalloc_zero(char *, ga);
-
+end:
+	fd_close(b.fd);
 	return 1;
 }

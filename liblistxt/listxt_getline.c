@@ -8,8 +8,10 @@ listxt_getline(buffer *b, stralloc *sa, genalloc *ga)
 	size_t n = 0;
 	char *s;
 
+	genalloc_zero(char *, ga);
 	if (!buffer_getline(b, sa)) return 0;
 	stralloc_chomp(sa);
+	if (!stralloc_cat0(sa)) return 0;
 
 	s = sa->s;
 	n = sa->n;
@@ -19,7 +21,6 @@ listxt_getline(buffer *b, stralloc *sa, genalloc *ga)
 		n -= i + 1;
 		s += i + 1;
 	}
-	if (!genalloc_catx(char *, ga, s)) return 0;
 
 	return 1;
 }
