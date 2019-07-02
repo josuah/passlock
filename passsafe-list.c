@@ -7,7 +7,7 @@
 #include "open.h"
 #include "stralloc.h"
 
-char *flag_f = NULL;
+char *flag_f = "/etc/pass/default";
 
 void
 usage(void)
@@ -30,7 +30,6 @@ main(int argc, char **argv)
 	default: usage();
 	} ARG_END;
 
-	if (!flag_f) usage();
 	if (*argv) usage();
 
 	if ((b.fd = open_read(flag_f)) == -1) die_open(flag_f);

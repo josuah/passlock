@@ -8,7 +8,7 @@
 #include "stralloc.h"
 #include <stdio.h> /* for rename(2) */
 
-char *flag_f = NULL;
+char *flag_f = "/etc/pass/default";
 
 void
 usage(void)
@@ -37,7 +37,6 @@ main(int argc, char **argv)
 	} ARG_END;
 
 	if (!(user = *argv++)) usage();
-	if (!flag_f) usage();
 	if (*argv) usage();
 
 	if (!listxt_valid(user)) die_invalid("username");

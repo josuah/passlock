@@ -10,7 +10,7 @@
 #include <stdio.h>  /* for rename(2) */
 #include <sodium.h>
 
-char *flag_f = NULL;
+char *flag_f = "/etc/pass/default";
 
 void
 usage(void)
@@ -40,7 +40,6 @@ main(int argc, char **argv)
 	default: usage();
 	} ARG_END;
 
-	if (!flag_f) usage();
 	if (!(user = *argv++)) usage(); 
 	if (!(path = *argv++)) usage();
 	if (*argv) usage();
@@ -63,9 +62,6 @@ main(int argc, char **argv)
 	if (!stralloc_cat0(&pass)) die_nomem();
 
 	log_d1("hashing password");
-	char num[50];
-	num[fmt_long(num, pass.n)] = '\0';
-	log_i3(num, ", ", pass.s);
 	if (crypto_pwhash_str(hash, pass.s, pass.n,
 		crypto_pwhash_OPSLIMIT_MODERATE,
 		crypto_pwhash_MEMLIMIT_MODERATE) != 0) die_nomem();
