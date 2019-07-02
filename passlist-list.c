@@ -12,7 +12,7 @@ char *flag_f = "/etc/pass/default";
 void
 usage(void)
 {
-	log_usage(arg_0, "-f passfile");
+	log_usage(arg_0, "[-f passfile]");
 }
 
 int

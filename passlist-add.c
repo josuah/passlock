@@ -15,7 +15,7 @@ char *flag_f = "/etc/pass/default";
 void
 usage(void)
 {
-	log_usage(arg_0, "-f passfile user path <passphrase");
+	log_usage(arg_0, "[-f passfile] user path <passphrase");
 }
 
 int

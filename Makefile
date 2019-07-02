@@ -5,7 +5,7 @@ W = -Wall -Wextra -Wno-unused-parameter
 CFLAGS = -g -I'include' -I'${LIBSODIUM_INC}' -static $W
 LFLAGS = -L${LIBSODIUM_LIB} -lsodium
 
-bin = passsafe-add passsafe-check passsafe-del passsafe-list
+bin = passlist-add passlist-check passlist-del passlist-list
 
 all: ${bin}
 
@@ -42,16 +42,16 @@ lib = liblistxt.a libopen.a liblog.a libbuffer.a libfd.a libstralloc.a libmem.a 
 
 inc = include/arg.h include/buffer.h include/env.h include/fd.h include/fmt.h include/genalloc.h include/int.h include/listxt.h include/log.h include/mem.h include/open.h include/str.h include/stralloc.h
 
-bin: passsafe-add passsafe-check passsafe-del passsafe-list
+bin: passlist-add passlist-check passlist-del passlist-list
 
-passsafe-add: passsafe-add.o ${lib} ${inc}
+passlist-add: passlist-add.o ${lib} ${inc}
 	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib}
 
-passsafe-check: passsafe-check.o ${lib} ${inc}
+passlist-check: passlist-check.o ${lib} ${inc}
 	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib}
 
-passsafe-del: passsafe-del.o ${lib} ${inc}
+passlist-del: passlist-del.o ${lib} ${inc}
 	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib}
 
-passsafe-list: passsafe-list.o ${lib} ${inc}
+passlist-list: passlist-list.o ${lib} ${inc}
 	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib}
