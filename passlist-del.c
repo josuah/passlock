@@ -8,7 +8,7 @@
 #include "stralloc.h"
 #include <stdio.h> /* for rename(2) */
 
-char *flag_f = "/etc/pass/default";
+char *flag_f = "/etc/passlist/default";
 
 void
 usage(void)

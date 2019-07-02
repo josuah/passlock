@@ -7,7 +7,9 @@
 #include <sodium.h>
 #include <unistd.h>
 
-char *flag_f = "/etc/pass/default";
+#define DUMMY "$argon2id$v=19$m=262144,t=3,p=1$Ark5SdaPOY6+L9i2fDsvjw$wI/uFb9ReSF9rfX6x5wHsaXTsAYRAJPpz1LjpqBR3tI"
+
+char *flag_f = "/etc/passlist/default";
 
 void
 usage(void)
@@ -53,16 +55,15 @@ main(int argc, char **argv)
 	if ((i = mem_chr(s, n, '\0')) == n) log_f1(2, "no timestamp");
 
 	if (!listxt_get(flag_f, &line, &ga, 0, user)) die_read(flag_f);
-	if (genalloc_len(char *, &ga) < 3)
+	if (genalloc_len(char *, &ga) < 3) {
+		i = crypto_pwhash_str_verify(DUMMY, "", 0);
 		log_f1(1, "invalid user");
+	}
 
 	hash = genalloc_s(char *, &ga)[1];
+
 	if (crypto_pwhash_str_verify(hash, pass, str_len(pass)) != 0)
 		log_f1(1, "invalid pass");
-
-	genalloc_free(char *, &ga);
-	stralloc_free(&sa);
-	stralloc_free(&line);
 
 	path = genalloc_s(char *, &ga)[2];
 	if (chdir(path) == -1) die_chdir(path);

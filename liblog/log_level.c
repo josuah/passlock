@@ -1,3 +1,3 @@
 #include "log.h"
 
-int log_level = 9;
+int log_level = 3;

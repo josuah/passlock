@@ -7,7 +7,7 @@
 #include "open.h"
 #include "stralloc.h"
 
-char *flag_f = "/etc/pass/default";
+char *flag_f = "/etc/passlist/default";
 
 void
 usage(void)
@@ -34,11 +34,11 @@ main(int argc, char **argv)
 
 	if ((b.fd = open_read(flag_f)) == -1) die_open(flag_f);
 
-	buffer_puts(buffer_1, "user            path\n");
+	buffer_puts(buffer_1, "user                      path\n");
 	while (listxt_getline(&b, &sa, &ga)) {
 		buffer_puts(buffer_1, " ");
 		buffer_puts(buffer_1, genalloc_s(char *, &ga)[0]);
-		buffer_pad(buffer_1, genalloc_s(char *, &ga)[0], 15, ' ');
+		buffer_pad(buffer_1, genalloc_s(char *, &ga)[0], 25, ' ');
 		buffer_puts(buffer_1, " ");
 		buffer_puts(buffer_1, genalloc_s(char *, &ga)[2]);
 		buffer_puts(buffer_1, "\n");
