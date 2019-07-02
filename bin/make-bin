@@ -11,7 +11,7 @@ __EOF__
 for x; do x=${x%.c}; cat <<__EOF__
 
 $x: $x.o \${lib} \${inc}
-	\${CC} \${LFLAGS} -o \${@} \${@}.o \${lib}
+	\${CC} \${LFLAGS} -o \${@} \${@}.o \${lib} \${LIB}
 __EOF__
 done
 

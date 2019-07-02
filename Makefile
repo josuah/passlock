@@ -2,8 +2,9 @@ LIBSODIUM_LIB = ${PREFIX}/lib
 LIBSODIUM_INC = ${PREFIX}/include
 
 W = -Wall -Wextra -Wno-unused-parameter
-CFLAGS = -g -I'include' -I'${LIBSODIUM_INC}' -static $W
-LFLAGS = -L${LIBSODIUM_LIB} -lsodium
+CFLAGS = -g -I'include' -I'${LIBSODIUM_INC}' $W
+LFLAGS = -static
+LIB = -L${LIBSODIUM_LIB} -lsodium -lpthread
 
 bin = passlist-add passlist-check passlist-del passlist-list
 
@@ -45,13 +46,13 @@ inc = include/arg.h include/buffer.h include/env.h include/fd.h include/fmt.h in
 bin: passlist-add passlist-check passlist-del passlist-list
 
 passlist-add: passlist-add.o ${lib} ${inc}
-	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib}
+	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib} ${LIB}
 
 passlist-check: passlist-check.o ${lib} ${inc}
-	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib}
+	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib} ${LIB}
 
 passlist-del: passlist-del.o ${lib} ${inc}
-	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib}
+	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib} ${LIB}
 
 passlist-list: passlist-list.o ${lib} ${inc}
-	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib}
+	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib} ${LIB}
