@@ -1,58 +1,43 @@
 LIBSODIUM_LIB = ${PREFIX}/lib
 LIBSODIUM_INC = ${PREFIX}/include
 
-W = -Wall -Wextra -Wno-unused-parameter
-CFLAGS = -g -I'include' -I'${LIBSODIUM_INC}' $W
-LFLAGS = -static
-LIB = -L${LIBSODIUM_LIB} -lsodium -lpthread
+W = -Wall -Wextra -std=c99 --pedantic
+CFLAGS = $W -I'${LIBSODIUM_INC}' -I'lib' -g
+LFLAGS = $W -L'${LIBSODIUM_LIB}' -static
+LIB = -lsodium -lpthread
 
-bin = passlist-add passlist-check passlist-del passlist-list
+# bin/make-mk
+
+bin =	passlist-add passlist-check passlist-del passlist-list
+
+inc =	lib/arg.h lib/buffer.h lib/case.h lib/env.h lib/fd.h lib/fmt.h  \
+	lib/genalloc.h lib/int.h lib/listxt.h lib/log.h lib/mem.h lib/open.h  \
+	lib/str.h lib/stralloc.h
+
+obj =	lib/arg.o lib/buffer.o lib/fd.o lib/fmt.o lib/int.o lib/listxt.o  \
+	lib/log.o lib/mem.o lib/open.o lib/str.o lib/stralloc.o
 
 all: ${bin}
 
 clean:
-	rm -f *.a *.o */*.o leapsecs leapsecs.dat
+	rm -f *.a *.o */*.o ${bin}
 
 install: all
-	mkdir -p "${PREFIX}/bin"
-	cp ${bin} "${PREFIX}/bin"
+	mkdir -p ${PREFIX}/bin
+	cp ${bin} ${PREFIX}/bin
 
 .c.o:
-	${CC} -c ${CFLAGS} ${include} -o $@ $<
+	${CC} -c ${CFLAGS} -o $@ $<
 
-leapsecs.dat: leapsecs leapsecs.txt
-	./leapsecs <leapsecs.txt >leapsecs.dat
 
-# bin/make-lib lib*/
+passlist-add: passlist-add.o ${obj} ${inc}
+	${CC} ${LFLAGS} -o $@ $@.o ${obj} ${LIB}
 
-include libarg/lib.mk
-include libbuffer/lib.mk
-include libfd/lib.mk
-include libfmt/lib.mk
-include libint/lib.mk
-include liblistxt/lib.mk
-include liblog/lib.mk
-include libmem/lib.mk
-include libopen/lib.mk
-include libstr/lib.mk
-include libstralloc/lib.mk
+passlist-check: passlist-check.o ${obj} ${inc}
+	${CC} ${LFLAGS} -o $@ $@.o ${obj} ${LIB}
 
-lib = liblistxt.a libopen.a liblog.a libbuffer.a libfd.a libstralloc.a libmem.a libfmt.a libstr.a libint.a libarg.a
+passlist-del: passlist-del.o ${obj} ${inc}
+	${CC} ${LFLAGS} -o $@ $@.o ${obj} ${LIB}
 
-# bin/make-bin *.c
-
-inc = include/arg.h include/buffer.h include/env.h include/fd.h include/fmt.h include/genalloc.h include/int.h include/listxt.h include/log.h include/mem.h include/open.h include/str.h include/stralloc.h
-
-bin: passlist-add passlist-check passlist-del passlist-list
-
-passlist-add: passlist-add.o ${lib} ${inc}
-	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib} ${LIB}
-
-passlist-check: passlist-check.o ${lib} ${inc}
-	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib} ${LIB}
-
-passlist-del: passlist-del.o ${lib} ${inc}
-	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib} ${LIB}
-
-passlist-list: passlist-list.o ${lib} ${inc}
-	${CC} ${LFLAGS} -o ${@} ${@}.o ${lib} ${LIB}
+passlist-list: passlist-list.o ${obj} ${inc}
+	${CC} ${LFLAGS} -o $@ $@.o ${obj} ${LIB}

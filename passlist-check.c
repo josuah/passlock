@@ -1,8 +1,8 @@
 #include "arg.h"
 #include "die.h"
-#include "die.h"
 #include "listxt.h"
 #include "log.h"
+#include "mem.h"
 #include <errno.h>
 #include <sodium.h>
 #include <unistd.h>
@@ -14,7 +14,7 @@ char *flag_f = "/etc/passlist/default";
 void
 usage(void)
 {
-	log_usage(arg_0, "[-f passfile] prog [arg...]");
+	log_u(arg_0, "[-f passfile] prog [arg...]");
 }
 
 int
@@ -39,31 +39,31 @@ main(int argc, char **argv)
 
 	errno = 0;
 	while (buffer_getc(buffer_3, &c) && stralloc_catc(&sa, c));
-	if (errno != 0) log_fs1(111, "could not read from file descriptor 3");
+	if (errno != 0) log_fs(111, "could not read from file descriptor 3");
 
 	s = sa.s;
 	n = sa.n;
 
 	user = s;
-	if ((i = mem_chr(s, n, '\0')) == n) log_f1(2, "no username");
+	if ((i = mem_chr(s, n, '\0')) == n) log_f(2, "no username");
 	s += i + 1;
 	n -= i + 1;
 	pass = s;
-	if ((i = mem_chr(s, n, '\0')) == n) log_f1(2, "no passphrase");
+	if ((i = mem_chr(s, n, '\0')) == n) log_f(2, "no passphrase");
 	s += i + 1;
 	n -= i + 1;
-	if ((i = mem_chr(s, n, '\0')) == n) log_f1(2, "no timestamp");
+	if ((i = mem_chr(s, n, '\0')) == n) log_f(2, "no timestamp");
 
 	if (!listxt_get(flag_f, &line, &ga, 0, user)) die_read(flag_f);
 	if (genalloc_len(char *, &ga) < 3) {
 		i = crypto_pwhash_str_verify(DUMMY, "", 0);
-		log_f1(1, "invalid user");
+		log_f(1, "invalid user");
 	}
 
 	hash = genalloc_s(char *, &ga)[1];
 
 	if (crypto_pwhash_str_verify(hash, pass, str_len(pass)) != 0)
-		log_f1(1, "invalid pass");
+		log_f(1, "invalid pass");
 
 	path = genalloc_s(char *, &ga)[2];
 	if (chdir(path) == -1) die_chdir(path);

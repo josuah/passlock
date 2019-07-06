@@ -1,0 +1,30 @@
+#!/bin/sh
+
+cat <<__EOF__
+
+bin =$(echo *.c | fold -s -w 70 | sed 's/^/	/; s/$/ \\/; s/\.c / /g; $ s/ \\//')
+
+inc =$(echo lib/*.h | fold -s -w 70 | sed 's/^/	/; s/$/ \\/; $ s/ \\//')
+
+obj =$(echo lib/*.c | fold -s -w 70 | sed 's/^/	/; s/$/ \\/; s/\.c /\.o /g; $ s/ \\//')
+
+all: \${bin}
+
+clean:
+	rm -f *.a *.o */*.o \${bin}
+
+install: all
+	mkdir -p \${PREFIX}/bin
+	cp \${bin} \${PREFIX}/bin
+
+.c.o:
+	\${CC} -c \${CFLAGS} -o \$@ \$<
+
+__EOF__
+for x in *.c; do x=${x%.c}; cat <<__EOF__
+
+$x: $x.o \${obj} \${inc}
+	\${CC} \${LFLAGS} -o \$@ \$@.o \${obj} \${LIB}
+__EOF__
+done
+

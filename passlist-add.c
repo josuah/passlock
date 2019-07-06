@@ -15,7 +15,7 @@ char *flag_f = "/etc/passlist/default";
 void
 usage(void)
 {
-	log_usage(arg_0, "[-f passfile] user path <passphrase");
+	log_u(arg_0, "[-f passfile] user path <passphrase");
 }
 
 int
@@ -52,7 +52,7 @@ main(int argc, char **argv)
 	if ((fd = open_read(flag_f)) == -1) die_open(flag_f);
 	if (!listxt_tmp(&tmp, flag_f)) die_nomem();
 	if ((b.fd = open_truncate(tmp.s)) == -1) die_open(tmp.s);
-	log_d5("copying \"",flag_f,"\" to \"",tmp.s,"\"");
+	log_d("copying \"",flag_f,"\" to \"",tmp.s,"\"");
 	if (fd_dump(b.fd, fd) == -1) die_copy();
 
 	if (!buffer_puts(buffer_2, "Enter password: ")) die_write();
@@ -60,7 +60,7 @@ main(int argc, char **argv)
 	if (!buffer_getline(buffer_0, &pass)) die_read("stdin");
 	stralloc_chomp(&pass);
 
-	log_d1("hashing password");
+	log_d("hashing password");
 	if (crypto_pwhash_str(hash, pass.s, pass.n,
 		crypto_pwhash_OPSLIMIT_MODERATE,
 		crypto_pwhash_MEMLIMIT_MODERATE) != 0) die_nomem();
