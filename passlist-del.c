@@ -43,7 +43,7 @@ main(int argc, char **argv)
 	if (!listxt_get(flag_f, &line, &ga, 0, user)) die_open(flag_f);
 	if (genalloc_len(char *, &ga) == 0) die_absent(user, flag_f);
 
-	if (!listxt_tmp(&tmp, flag_f)) die_nomem();
+	if (!listxt_tmp(&tmp, flag_f)) die_alloc();
 	if ((bi.fd = open_read(flag_f)) == -1) die_open(flag_f);
 	if ((bo.fd = open_truncate(tmp.s)) == -1) die_open(tmp.s);
 

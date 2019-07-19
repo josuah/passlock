@@ -50,7 +50,7 @@ main(int argc, char **argv)
 	if (genalloc_len(char *, &ga) > 0) die_exist(user, flag_f);
 
 	if ((fd = open_read(flag_f)) == -1) die_open(flag_f);
-	if (!listxt_tmp(&tmp, flag_f)) die_nomem();
+	if (!listxt_tmp(&tmp, flag_f)) die_alloc();
 	if ((b.fd = open_truncate(tmp.s)) == -1) die_open(tmp.s);
 	log_d("copying \"",flag_f,"\" to \"",tmp.s,"\"");
 	if (fd_dump(b.fd, fd) == -1) die_copy();
@@ -63,7 +63,7 @@ main(int argc, char **argv)
 	log_d("hashing password");
 	if (crypto_pwhash_str(hash, pass.s, pass.n,
 		crypto_pwhash_OPSLIMIT_MODERATE,
-		crypto_pwhash_MEMLIMIT_MODERATE) != 0) die_nomem();
+		crypto_pwhash_MEMLIMIT_MODERATE) != 0) die_alloc();
 
 	if (!buffer_puts(&b, user)) die_write();
 	if (!buffer_puts(&b, ":")) die_write();
