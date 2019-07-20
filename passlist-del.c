@@ -13,7 +13,7 @@ char *flag_f = "/etc/passlist/default";
 void
 usage(void)
 {
-	log_u(arg_0, "[-f passfile] user");
+	log_u(arg_0, " [-f passfile] user");
 }
 
 int

@@ -14,7 +14,7 @@ char *flag_f = "/etc/passlist/default";
 void
 usage(void)
 {
-	log_u(arg_0, "[-f passfile] prog [arg...]");
+	log_u(arg_0, " [-f passfile] prog [arg...]");
 }
 
 int
