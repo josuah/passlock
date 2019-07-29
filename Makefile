@@ -1,18 +1,16 @@
-LIBSODIUM_LIB = ${PREFIX}/lib
-LIBSODIUM_INC = ${PREFIX}/include
+LIBSODIUM = ${PREFIX}
 
 W = -Wall -Wextra -std=c99 --pedantic
-CFLAGS = $W -I'${LIBSODIUM_INC}' -I'lib' -g
-LFLAGS = $W -L'${LIBSODIUM_LIB}' -static
-LIB = -lsodium -lpthread
+CFLAGS = $W -I'${LIBSODIUM}/include' -I'lib' -g
+LFLAGS = $W -L'${LIBSODIUM}/lib' -static
+LIB = -lsodium #-lpthread
 
-# bin/make-mk
-
+#
 bin =	passlist-add passlist-check passlist-del passlist-list
 
-inc =	lib/arg.h lib/buffer.h lib/case.h lib/env.h lib/fd.h lib/fmt.h  \
-	lib/genalloc.h lib/int.h lib/listxt.h lib/log.h lib/mem.h lib/open.h  \
-	lib/str.h lib/stralloc.h
+inc =	lib/arg.h lib/buffer.h lib/case.h lib/die.h lib/env.h lib/fd.h  \
+	lib/fmt.h lib/genalloc.h lib/int.h lib/listxt.h lib/log.h lib/mem.h  \
+	lib/open.h lib/str.h lib/stralloc.h
 
 obj =	lib/arg.o lib/buffer.o lib/fd.o lib/fmt.o lib/int.o lib/listxt.o  \
 	lib/log.o lib/mem.o lib/open.o lib/str.o lib/stralloc.o
