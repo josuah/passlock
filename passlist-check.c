@@ -20,11 +20,11 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	char b3[512], bsa[512], *bga[3];
+	char b3[512];
 	buffer buffer_3[1] = { BUFFER_INIT(read, 3, b3, sizeof b3) };
-	stralloc sa = STRALLOC_INIT(bsa);
-	genalloc ga = GENALLOC_INIT(bga);
-	stralloc line = STRALLOC_INIT(0);
+	stralloc sa = STRALLOC_INIT;
+	genalloc ga = GENALLOC_INIT;
+	stralloc line = STRALLOC_INIT;
 	char c, *s, *user, *pass, *hash, *path;
 	size_t n, i;
 

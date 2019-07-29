@@ -18,12 +18,12 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	log_init();
 	char bs[1024];
-	char *gs[3];
 	buffer b = BUFFER_INIT(read, 0, bs, sizeof bs);
-	stralloc sa = STRALLOC_INIT(0);
-	genalloc ga = GENALLOC_INIT(gs);
+	stralloc sa = STRALLOC_INIT;
+	genalloc ga = GENALLOC_INIT;
+
+	log_init();
 
 	ARG_BEGIN {
 	case 'f': flag_f = ARG; break;

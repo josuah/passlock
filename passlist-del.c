@@ -20,14 +20,13 @@ int
 main(int argc, char **argv)
 {
 	char *user;
-	char *gs[3];
 	char bis[1024];
 	char bos[1024];
-	genalloc ga = GENALLOC_INIT(gs);
+	genalloc ga = GENALLOC_INIT;
 	buffer bi = BUFFER_INIT(read, 0, bis, sizeof bis);
 	buffer bo = BUFFER_INIT(write, 0, bos, sizeof bos);
-	stralloc line = STRALLOC_INIT(0);
-	stralloc tmp = STRALLOC_INIT(0);
+	stralloc line = STRALLOC_INIT;
+	stralloc tmp = STRALLOC_INIT;
 
 	log_init();
 

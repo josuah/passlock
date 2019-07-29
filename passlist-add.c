@@ -21,17 +21,14 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	char *user;
-	char *path;
-	char hash[crypto_pwhash_STRBYTES];
-	char *gs[3];
+	char *user, *path, hash[crypto_pwhash_STRBYTES];
 	char bs[1024];
-	genalloc ga = GENALLOC_INIT(gs);
 	buffer b = BUFFER_INIT(write, 0, bs, sizeof bs);
+	genalloc ga = GENALLOC_INIT;
 	int fd;
-	stralloc line = STRALLOC_INIT(0);
-	stralloc tmp = STRALLOC_INIT(0);
-	stralloc pass = STRALLOC_INIT(0);
+	stralloc line = STRALLOC_INIT;
+	stralloc tmp = STRALLOC_INIT;
+	stralloc pass = STRALLOC_INIT;
 
 	log_init();
 

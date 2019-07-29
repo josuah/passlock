@@ -8,10 +8,9 @@ typedef struct stralloc {
 	char* s;
 	size_t n;
 	size_t a;
-	int h;
 } stralloc;
 
-#define STRALLOC_INIT(s) { s, 0, s ? sizeof s : 0, !s }
+#define STRALLOC_INIT { 0, 0, 0 }
 
 #define stralloc_cat0(sa)           stralloc_catb((sa), "", 1)
 #define stralloc_cats(sa, s)        stralloc_catb((sa), s, str_len(s))

@@ -43,7 +43,6 @@ stralloc_ready(stralloc *sa, size_t n)
 	char *x;
 
 	if (sa->s && sa->a >= n) return 1;
-	if (!sa->h) return errno = EMSGSIZE, 0;
 	if (!(x = realloc(sa->s, wanted))) return 0;
 	sa->a = wanted;
 	sa->s = x;
