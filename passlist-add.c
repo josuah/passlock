@@ -1,6 +1,5 @@
 #include "arg.h"
 #include "buffer.h"
-#include "die.h"
 #include "fd.h"
 #include "fmt.h"
 #include "listxt.h"
@@ -15,7 +14,7 @@ char *flag_f = "/etc/passlist/default";
 void
 usage(void)
 {
-	log_u(arg_0, " [-f passfile] user path <passphrase");
+	log_usage(arg_0, " [-f passfile] user path <passphrase");
 }
 
 int
@@ -41,34 +40,34 @@ main(int argc, char **argv)
 	if (!(path = *argv++)) usage();
 	if (*argv) usage();
 
-	if (!listxt_valid(user)) die_invalid("username");
-	if (!listxt_valid(path)) die_invalid("path");
-	if (!listxt_get(flag_f, &line, &ga, 0, user)) die_open(flag_f);
-	if (genalloc_len(char *, &ga) > 0) die_exist(user, flag_f);
+	if (!listxt_valid(user)) log_fatal("invalid username");
+	if (!listxt_valid(path)) log_fatal("invalid path");
+	if (!listxt_get(flag_f, &line, &ga, 0, user)) log_fatalsys("open ",flag_f);
+	if (genalloc_len(char *, &ga) > 0) log_fatal("user ",user," exist on ",flag_f);
 
-	if ((fd = open_read(flag_f)) == -1) die_open(flag_f);
-	if (!listxt_tmp(&tmp, flag_f)) die_alloc();
-	if ((b.fd = open_truncate(tmp.s)) == -1) die_open(tmp.s);
-	log_d("copying \"",flag_f,"\" to \"",tmp.s,"\"");
-	if (fd_dump(b.fd, fd) == -1) die_copy();
+	if ((fd = open_read(flag_f)) == -1) log_fatalsys("open ",flag_f);
+	if (!listxt_tmp(&tmp, flag_f)) log_fatalsys("alloc");
+	if ((b.fd = open_truncate(tmp.s)) == -1) log_fatalsys("open ",tmp.s);
+	log_debug("copying \"",flag_f,"\" to \"",tmp.s,"\"");
+	if (fd_dump(b.fd, fd) == -1) log_fatalsys("copy");
 
-	if (!buffer_getline(buffer_0, &pass)) die_read("stdin");
+	if (!buffer_getline(buffer_0, &pass)) log_fatalsys("read stdin");
 	stralloc_chomp(&pass);
 
-	log_d("hashing password");
+	log_debug("hashing password");
 	if (crypto_pwhash_str(hash, pass.s, pass.n,
 		crypto_pwhash_OPSLIMIT_MODERATE,
-		crypto_pwhash_MEMLIMIT_MODERATE) != 0) die_alloc();
+		crypto_pwhash_MEMLIMIT_MODERATE) != 0) log_fatalsys("alloc");
 
-	if (!buffer_puts(&b, user)) die_write();
-	if (!buffer_puts(&b, ":")) die_write();
-	if (!buffer_puts(&b, hash)) die_write();
-	if (!buffer_puts(&b, ":")) die_write();
-	if (!buffer_puts(&b, path)) die_write();
-	if (!buffer_puts(&b, "\n")) die_write();
-	if (!buffer_flush(&b)) die_write();
+	if (!buffer_puts(&b, user)) log_fatalsys("write");
+	if (!buffer_puts(&b, ":")) log_fatalsys("write");
+	if (!buffer_puts(&b, hash)) log_fatalsys("write");
+	if (!buffer_puts(&b, ":")) log_fatalsys("write");
+	if (!buffer_puts(&b, path)) log_fatalsys("write");
+	if (!buffer_puts(&b, "\n")) log_fatalsys("write");
+	if (!buffer_flush(&b)) log_fatalsys("write");
 
-	if (rename(tmp.s, flag_f) == -1) die_rename(tmp.s, flag_f);
+	if (rename(tmp.s, flag_f) == -1) log_fatalsys(tmp.s," -> ",flag_f);
 
 	return 0;
 }

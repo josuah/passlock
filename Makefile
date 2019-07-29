@@ -8,9 +8,9 @@ LIB = -lsodium #-lpthread
 #
 bin =	passlist-add passlist-check passlist-del passlist-list
 
-inc =	lib/arg.h lib/buffer.h lib/case.h lib/die.h lib/env.h lib/fd.h  \
-	lib/fmt.h lib/genalloc.h lib/int.h lib/listxt.h lib/log.h lib/mem.h  \
-	lib/open.h lib/str.h lib/stralloc.h
+inc =	lib/arg.h lib/buffer.h lib/case.h lib/env.h lib/fd.h lib/fmt.h  \
+	lib/genalloc.h lib/int.h lib/listxt.h lib/log.h lib/mem.h lib/open.h  \
+	lib/str.h lib/stralloc.h
 
 obj =	lib/arg.o lib/buffer.o lib/fd.o lib/fmt.o lib/int.o lib/listxt.o  \
 	lib/log.o lib/mem.o lib/open.o lib/str.o lib/stralloc.o
@@ -26,7 +26,6 @@ install: all
 
 .c.o:
 	${CC} -c ${CFLAGS} -o $@ $<
-
 
 passlist-add: passlist-add.o ${obj} ${inc}
 	${CC} ${LFLAGS} -o $@ $@.o ${obj} ${LIB}

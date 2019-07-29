@@ -1,6 +1,5 @@
 #include "arg.h"
 #include "buffer.h"
-#include "die.h"
 #include "genalloc.h"
 #include "listxt.h"
 #include "log.h"
@@ -12,7 +11,7 @@ char *flag_f = "/etc/passlist/default";
 void
 usage(void)
 {
-	log_u(arg_0, " [-f passfile]");
+	log_usage(arg_0, " [-f passfile]");
 }
 
 int
@@ -32,7 +31,7 @@ main(int argc, char **argv)
 
 	if (*argv) usage();
 
-	if ((b.fd = open_read(flag_f)) == -1) die_open(flag_f);
+	if ((b.fd = open_read(flag_f)) == -1) log_fatalsys("open ",flag_f);
 
 	buffer_puts(buffer_1, "user                      path\n");
 	while (listxt_getline(&b, &sa, &ga)) {
@@ -44,7 +43,7 @@ main(int argc, char **argv)
 		buffer_puts(buffer_1, "\n");
 	}
 
-	if (!buffer_flush(buffer_1)) die_write();
+	if (!buffer_flush(buffer_1)) log_fatalsys("write");
 
 	return 0;
 }

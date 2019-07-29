@@ -1,6 +1,5 @@
 #include "arg.h"
 #include "buffer.h"
-#include "die.h"
 #include "fmt.h"
 #include "listxt.h"
 #include "log.h"
@@ -13,7 +12,7 @@ char *flag_f = "/etc/passlist/default";
 void
 usage(void)
 {
-	log_u(arg_0, " [-f passfile] user");
+	log_usage(arg_0, " [-f passfile] user");
 }
 
 int
@@ -38,22 +37,22 @@ main(int argc, char **argv)
 	if (!(user = *argv++)) usage();
 	if (*argv) usage();
 
-	if (!listxt_valid(user)) die_invalid("username");
-	if (!listxt_get(flag_f, &line, &ga, 0, user)) die_open(flag_f);
-	if (genalloc_len(char *, &ga) == 0) die_absent(user, flag_f);
+	if (!listxt_valid(user)) log_fatalsys("invalid username");
+	if (!listxt_get(flag_f, &line, &ga, 0, user)) log_fatalsys("open ", flag_f);
+	if (genalloc_len(char *, &ga) == 0) log_fatalsys("user ",user," absent from ",flag_f);
 
-	if (!listxt_tmp(&tmp, flag_f)) die_alloc();
-	if ((bi.fd = open_read(flag_f)) == -1) die_open(flag_f);
-	if ((bo.fd = open_truncate(tmp.s)) == -1) die_open(tmp.s);
+	if (!listxt_tmp(&tmp, flag_f)) log_fatalsys("alloc");
+	if ((bi.fd = open_read(flag_f)) == -1) log_fatalsys("open ",flag_f);
+	if ((bo.fd = open_truncate(tmp.s)) == -1) log_fatalsys("open ",tmp.s);
 
 	while (listxt_getline(&bi, &line, &ga)) {
 		if (genalloc_len(char *, &ga) == 0) continue;
 		if (str_equal(genalloc_s(char *, &ga)[0], user)) continue;
-		if (!listxt_put(&bo, &ga)) die_write();
+		if (!listxt_put(&bo, &ga)) log_fatalsys("write");
 	}
-	if (!buffer_flush(&bo)) die_write();
+	if (!buffer_flush(&bo)) log_fatalsys("write");
 
-	if (rename(tmp.s, flag_f) == -1) die_rename(tmp.s, flag_f);
+	if (rename(tmp.s, flag_f) == -1) log_fatalsys(tmp.s," -> ",flag_f);
 
 	return 0;
 }
