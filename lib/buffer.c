@@ -1,19 +1,47 @@
-#include <unistd.h>
-#include "fd.h"
-#include "str.h"
-#include "fmt.h"
-#include "mem.h"
-#include "stralloc.h"
 #include "buffer.h"
 
+#include "fmt.h"
+#include "mem.h"
+#include "str.h"
+#include "stralloc.h"
+#include <errno.h>
+#include <unistd.h>
+
 static char b0[8192];
-buffer buffer_0[1] = { BUFFER_INIT(fd_read, 0, b0, sizeof b0) };
+buffer buffer_0[1] = { BUFFER_INIT(buffer_read, 0, b0, sizeof b0) };
 
 static char b1[8192];
-buffer buffer_1[1] = { BUFFER_INIT(fd_write, 1, b1, sizeof b1) };
+buffer buffer_1[1] = { BUFFER_INIT(buffer_write, 1, b1, sizeof b1) };
 
 static char b2[256];
-buffer buffer_2[1] = { BUFFER_INIT(fd_write, 2, b2, sizeof b2) };
+buffer buffer_2[1] = { BUFFER_INIT(buffer_write, 2, b2, sizeof b2) };
+
+ssize_t
+buffer_read(int fd, char *s, size_t n)
+{
+	ssize_t r;
+	while ((r = read(fd, s, n)) == -1 && errno != EINTR);
+	return r;
+}
+
+ssize_t
+buffer_write(int fd, char *s, size_t n)
+{
+	ssize_t w;
+	while ((w = write(fd, s, n)) == -1 && errno != EINTR);
+	return w;
+}
+
+int
+buffer_dump(int to, int from)
+{
+	char s[1024];
+	ssize_t n;
+
+	while ((n = buffer_read(from, s, sizeof s)) > 0)
+		if (buffer_write(to, s, n) < n) return -1;
+	return n;
+}
 
 int
 buffer_fill(buffer *b)

@@ -1,4 +1,5 @@
 #include "str.h"
+#include "mem.h"
 
 size_t
 str_chr(char const *buf, char c)

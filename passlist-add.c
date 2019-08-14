@@ -1,6 +1,5 @@
 #include "arg.h"
 #include "buffer.h"
-#include "fd.h"
 #include "fmt.h"
 #include "listxt.h"
 #include "log.h"
@@ -56,7 +55,7 @@ main(int argc, char **argv)
 	if (!listxt_tmp(&tmp, flag_f)) log_fatalsys("alloc");
 	if ((b.fd = open_truncate(tmp.s)) == -1) log_fatalsys("open ",tmp.s);
 	log_debug("copying \"",flag_f,"\" to \"",tmp.s,"\"");
-	if (fd_dump(b.fd, fd) == -1) log_fatalsys("copy");
+	if (buffer_dump(b.fd, fd) == -1) log_fatalsys("copy");
 
 	if (!buffer_getline(buffer_0, &pass)) log_fatalsys("read stdin");
 	stralloc_chomp(&pass);

@@ -1,7 +1,6 @@
 #include "listxt.h"
 
 #include "buffer.h"
-#include "fd.h"
 #include "fmt.h"
 #include "open.h"
 #include "str.h"
@@ -25,7 +24,7 @@ listxt_get(char *path, stralloc *sa, genalloc *ga, size_t n, char *s)
 	}
 	genalloc_zero(char *, ga);
 end:
-	fd_close(b.fd);
+	close(b.fd);
 	return 1;
 }
 

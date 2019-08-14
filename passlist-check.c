@@ -20,7 +20,7 @@ int
 main(int argc, char **argv)
 {
 	char b3[512];
-	buffer buffer_3[1] = { BUFFER_INIT(read, 3, b3, sizeof b3) };
+	buffer buffer_3[1] = { BUFFER_INIT(buffer_read, 3, b3, sizeof b3) };
 	stralloc sa = STRALLOC_INIT;
 	genalloc ga = GENALLOC_INIT;
 	stralloc line = STRALLOC_INIT;

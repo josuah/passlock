@@ -8,16 +8,13 @@ LFLAGS = $W -L'${LIBSODIUM}/lib' -static
 LIB = -lsodium #-lpthread
 
 #
-man =	passlist.1 passlist.8
-
 bin =	passlist-add passlist-check passlist-del passlist-list
 
-inc =	lib/arg.h lib/buffer.h lib/case.h lib/env.h lib/fd.h lib/fmt.h  \
-	lib/genalloc.h lib/int.h lib/listxt.h lib/log.h lib/mem.h lib/open.h  \
-	lib/str.h lib/stralloc.h
+inc =	lib/arg.h lib/buffer.h lib/env.h lib/fmt.h lib/genalloc.h lib/int.h  \
+	lib/listxt.h lib/log.h lib/mem.h lib/open.h lib/str.h lib/stralloc.h
 
-obj =	lib/arg.o lib/buffer.o lib/fd.o lib/fmt.o lib/int.o lib/listxt.o  \
-	lib/log.o lib/mem.o lib/open.o lib/str.o lib/stralloc.o
+obj =	lib/arg.o lib/buffer.o lib/fmt.o lib/int.o lib/listxt.o lib/log.o  \
+	lib/mem.o lib/open.o lib/str.o lib/stralloc.o
 
 all: ${bin}
 
@@ -27,6 +24,10 @@ clean:
 install: all
 	mkdir -p ${PREFIX}/bin
 	cp ${bin} ${PREFIX}/bin
+	mkdir -p ${PREFIX}/share/man/man1
+	cp *.1  ${PREFIX}/share/man/man1
+	mkdir -p ${PREFIX}/share/man/man8
+	cp *.8  ${PREFIX}/share/man/man8
 
 .c.o:
 	${CC} -c ${CFLAGS} -o $@ $<

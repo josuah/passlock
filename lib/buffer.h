@@ -26,7 +26,7 @@ extern buffer buffer_2[1];
 #define buffer_getc(b, p)     buffer_get(b, p, 1)
 #define buffer_getline(b, sa) buffer_gettoken(b, sa, '\n')
 
-// bin/make-h lib/buffer.c
+int     buffer_dump(int, int);
 int     buffer_fill(buffer *);
 int     buffer_flush(buffer *);
 int     buffer_get(buffer *, char *, size_t);
@@ -35,6 +35,8 @@ int     buffer_pad(buffer *, char const *, size_t, char);
 int     buffer_put(buffer *, const char *, size_t);
 int     buffer_putc(buffer *, char);
 int     buffer_putn(buffer *, unsigned long);
+ssize_t buffer_read(int, char *, size_t);
+ssize_t buffer_write(int, char *, size_t);
 void    buffer_init(buffer *, ssize_t (*op)(), int, char *, size_t);
 
 #endif
