@@ -1,14 +1,15 @@
-#include <unistd.h>
-#include "open.h"
-#include "fd.h"
-#include <errno.h>
 #include "listxt.h"
-#include "str.h"
-#include <stdio.h>
-#include "fmt.h"
-#include <sys/types.h>
-#include "stralloc.h"
+
 #include "buffer.h"
+#include "fd.h"
+#include "fmt.h"
+#include "open.h"
+#include "str.h"
+#include "stralloc.h"
+#include <errno.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 int
 listxt_get(char *path, stralloc *sa, genalloc *ga, size_t n, char *s)
@@ -31,19 +32,18 @@ end:
 int
 listxt_getline(buffer *b, stralloc *sa, genalloc *ga)
 {
-	size_t i = 0;
-	size_t n = 0;
+	size_t i, n;
 	char *s;
 
-	genalloc_zero(char *, ga);
 	if (!buffer_getline(b, sa)) return 0;
 	stralloc_chomp(sa);
 	if (!stralloc_cat0(sa)) return 0;
 
 	s = sa->s;
 	n = sa->n;
+	genalloc_zero(char *, ga);
 	while ((i = listxt_scan(s)) < n) {
-		if (!genalloc_catx(char *, ga, s)) return 0;
+		if (!genalloc_catx(char *, ga, &s)) return 0;
 		s[i] = 0;
 		n -= i + 1;
 		s += i + 1;
