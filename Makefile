@@ -1,11 +1,15 @@
+VERSION = v0.1
+
 LIBSODIUM = ${PREFIX}
 
 W = -Wall -Wextra -std=c99 --pedantic
-CFLAGS = $W -I'${LIBSODIUM}/include' -I'lib' -g
+CFLAGS = $W -I'${LIBSODIUM}/include' -I'lib' -g -DVERSION='"${VERSION}"'
 LFLAGS = $W -L'${LIBSODIUM}/lib' -static
 LIB = -lsodium #-lpthread
 
 #
+man =	passlist.1 passlist.8
+
 bin =	passlist-add passlist-check passlist-del passlist-list
 
 inc =	lib/arg.h lib/buffer.h lib/case.h lib/env.h lib/fd.h lib/fmt.h  \

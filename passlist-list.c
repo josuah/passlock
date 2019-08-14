@@ -11,7 +11,7 @@ char *flag_f = "/etc/passlist/default";
 void
 usage(void)
 {
-	log_usage(arg_0, " [-f passfile]");
+	log_usage(arg_0, " [-v] [-f passfile]");
 }
 
 int
@@ -25,8 +25,15 @@ main(int argc, char **argv)
 	log_init();
 
 	ARG_BEGIN {
-	case 'f': flag_f = ARG; break;
-	default: usage();
+	case 'v':
+		buffer_puts(buffer_1, VERSION);
+		buffer_flush(buffer_1);
+		return 0;
+	case 'f':
+		flag_f = ARG;
+		break;
+	default:
+		usage();
 	} ARG_END;
 
 	if (*argv) usage();
