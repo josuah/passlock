@@ -26,7 +26,11 @@ utility read a checkpassword-formatted string from file descriptor 3, and checks
 it against the passlist file used.
 .
 .Pp
-The checkpasswd format used is:
+It then change the current directory to the path specified in the passfile, then
+execute into the command line provided as arguments.
+.
+.Pp
+The string read must follow this format:
 .
 .Dl user\\\\0password\\\\0realm
 .
