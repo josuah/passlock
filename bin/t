@@ -1,0 +1,14 @@
+#!/bin/sh -e
+
+cd lib
+echo '#include "std/test.h"'
+find * -name '*.t' | sed -r 's/(.*).t/#include "\1.h"/; p; s/."$/t"/'
+echo ''
+echo 'int main(void) {'
+echo '	test_init();'
+echo ''
+find * -name '*.t' | sed 's/[/]/_/; s/^/	test_/; s/.t$/();/'
+echo ''
+echo '	test_summary();'
+echo '	return !test_ok;'
+echo '}'

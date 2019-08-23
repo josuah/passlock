@@ -1,0 +1,40 @@
+#!/bin/sh
+
+f() { tr '\n' ' ' | fold -s -w 70 | sed 's/^/	/; s/$/ \\/; $ s/ \\//'; }
+c() { find lib -name '*.c' | f; }
+h() { find lib -name '*.h' | f; }
+m() { ls doc | sed -rn 's/.*\.([0-9])$/\1/p' | sort -u; }
+b() { find cmd -name '*.c' | sed 's/\.c//' | f; }
+
+echo "bin =$(b)"
+echo ""
+echo "inc =$(h)"
+echo ""
+echo "obj =$(c | sed 's/\.c/\.o/g')"
+echo ""
+echo "all: \${bin}"
+echo ""
+echo "\${bin}: \${obj}"
+echo ""
+echo ".c.o:"
+echo "	\${CC} -c \${CFLAGS} -o \$@ \$<"
+echo ""
+echo "clean:"
+echo "	rm -f *.a *.o */*.o */*/*.o \${bin}"
+echo ""
+echo "install: all"
+echo "	mkdir -p \${PREFIX}/bin"
+echo "	cp \${bin} \${PREFIX}/bin"
+for x in $(m); do
+	echo "	mkdir -p \${PREFIX}/share/man/man$x"
+	echo "	cp -f doc/*.$x  \${PREFIX}/share/man/man$x"
+done
+echo ""
+echo ".PHONY: test"
+echo "test: \${obj}"
+echo "	bin/t >test.c"
+echo "	\${CC} \${CFLAGS} \${LFLAGS} -o \$@ test.c \${obj}"
+echo "	./test"
+echo ""
+echo "\${bin}: \${bin:=.o} \${obj} \${inc}"
+echo "	\${CC} \${LFLAGS} -o \$@ \$@.o \${obj} \${LIB}"
