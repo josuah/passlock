@@ -136,10 +136,10 @@ buffer_init(struct buffer *b, ssize_t (*op)(), int fd, char *s, size_t n)
 }
 
 int
-buffer_pad(struct buffer *b, char const *s, char c, size_t n)
+buffer_pad(struct buffer *b, char const *s, char *pad, size_t n)
 {
 	for (size_t i = str_len(s); i < n; i++)
-		if (!buffer_putc(b, c)) return 0;
+		if (!buffer_puts(b, pad)) return 0;
 
 	return 1;
 }

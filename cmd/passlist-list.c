@@ -44,7 +44,7 @@ main(int argc, char **argv)
 	while (listxt_getline(&b, &sa, &ga)) {
 		buffer_puts(buffer_1, " ");
 		buffer_puts(buffer_1, genalloc_s(char *, &ga)[0]);
-		buffer_pad(buffer_1, genalloc_s(char *, &ga)[0], 25, ' ');
+		buffer_pad(buffer_1, genalloc_s(char *, &ga)[0], " ", 95);
 		buffer_puts(buffer_1, " ");
 		buffer_puts(buffer_1, genalloc_s(char *, &ga)[2]);
 		buffer_puts(buffer_1, "\n");

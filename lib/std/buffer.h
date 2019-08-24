@@ -30,7 +30,7 @@ int             buffer_dump(int, int);
 int             buffer_flush(struct buffer *);
 int             buffer_get(struct buffer *, char *, size_t);
 int             buffer_gettoken(struct buffer *, struct stralloc *, char);
-int             buffer_pad(struct buffer *, char const *, char, size_t);
+int             buffer_pad(struct buffer *, char const *, char *, size_t);
 int             buffer_put(struct buffer *, const char *, size_t);
 int             buffer_putc(struct buffer *, char);
 int             buffer_putn(struct buffer *, unsigned long);
