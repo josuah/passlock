@@ -4,6 +4,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/*
+ * Adapted from Dan Bernstein (cr.yp.to) code for djbdns (public domain) as
+ * well as from Laurent Bercot (skarnet.org) code for skalibs (ISC licence).
+ */
+
 #define u32_rotr(x, b) (u32)(((x) >> (b)) | ((x) << (32 - (b))))
 #define u64_rotr(x, b) (u64)(((x) >> (b)) | ((x) << (64 - (b))))
 
@@ -20,7 +25,18 @@ typedef int32_t i32;
 typedef int16_t i16;
 typedef int8_t  i8;
 
+size_t          u8_fmt(char *, u8);
+size_t          u16_fmt(char *, u16);
+size_t          u32_fmt(char *, u32);
+size_t          u64_fmt(char *, u64);
+
+size_t          i8_fmt(char *, i8);
+size_t          i16_fmt(char *, i16);
+size_t          i32_fmt(char *, i32);
+size_t          i64_fmt(char *, i64);
+
 int             u8_scan_base_char(char, u8 *, u8);
+size_t          i64_scan_base(char const *, i64 *, u8);
 size_t          u16_scan_base(char const *, u16 *, u8);
 size_t          u32_scan_base(char const *, u32 *, u8);
 size_t          u64_scan_base(char const *, u64 *, u8);

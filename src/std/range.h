@@ -12,7 +12,7 @@ struct range {
 };
 
 int             range_compare(const void *, const void *);
-int             range_contain(struct genalloc *, u64);
+int             range_has(struct genalloc *, u64);
 int             range_next(struct genalloc *, u64 *);
 void            range_merge(struct genalloc *);
 void            range_sort(struct genalloc *);

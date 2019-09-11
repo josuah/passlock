@@ -15,7 +15,7 @@ test_init(void)
 void
 test_lib(char const *s)
 {
-	buffer_puts(buffer_1, "\n\nlib/");
+	buffer_puts(buffer_1, "\n\nsrc/");
 	buffer_puts(buffer_1, s);
 	buffer_puts(buffer_1, ".t");
 	buffer_flush(buffer_1);
@@ -52,6 +52,6 @@ test_summary(void)
 	buffer_putn(buffer_1, test_count - test_err);
 	buffer_puts(buffer_1, "/");
 	buffer_putn(buffer_1, test_count);
-	buffer_puts(buffer_1, " tests passed\n");
+	buffer_puts(buffer_1, " tests passed\n\n");
 	buffer_flush(buffer_1);
 }

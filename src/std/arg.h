@@ -1,6 +1,10 @@
 #ifndef STD_ARG_H
 #define STD_ARG_H
 
+/*
+ * Inspired from __20h__ (r-36.net) code as well as Plan 9 libraries.
+ */
+
 #define ARG_BEGIN \
 	arg_0 = *argv; (void)argc; \
 	while ((*++argv) && (*argv)[0] == '-' && (*argv)[1] != '\0') { \

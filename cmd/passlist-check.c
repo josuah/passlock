@@ -27,7 +27,7 @@ main(int argc, char **argv)
 	char c, *s, *user, *pass, *hash, *path;
 	size_t n, i;
 
-	log_init();
+	log_init(3);
 
 	ARG_BEGIN {
 	case 'v':
@@ -45,7 +45,7 @@ main(int argc, char **argv)
 
 	errno = 0;
 	while (buffer_getc(buffer_3, &c) && stralloc_catc(&sa, c));
-	if (errno != 0) log_fatal_sys(111, "read fd 3");
+	if (errno != 0) log_fatal(111, "read fd 3");
 
 	s = sa.s;
 	n = sa.n;
@@ -60,7 +60,7 @@ main(int argc, char **argv)
 	n -= i + 1;
 	if ((i = mem_chr(s, n, '\0')) == n) log_fatal(2, "no timestamp");
 
-	if (!listxt_get(flag_f, &line, &ga, 0, user)) log_fatal_sys(111, "read ", flag_f);
+	if (!listxt_get(flag_f, &line, &ga, 0, user)) log_fatal(111, "read ", flag_f);
 	if (genalloc_len(char *, &ga) < 3) {
 		i = crypto_pwhash_str_verify(DUMMY, "", 0);
 		log_fatal(1, "invalid user");
@@ -72,10 +72,10 @@ main(int argc, char **argv)
 		log_fatal(1, "invalid pass");
 
 	path = genalloc_s(char *, &ga)[2];
-	if (chdir(path) == -1) log_fatal_sys(111, "chdir", path);
+	if (chdir(path) == -1) log_fatal(111, "chdir", path);
 
 	execvp(*argv, argv);
-	log_fatal_sys(111, "exec", *argv);
+	log_fatal(111, "exec", *argv);
 
 	return 0;
 }

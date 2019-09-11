@@ -27,7 +27,7 @@ main(int argc, char **argv)
 	struct stralloc line = STRALLOC_INIT;
 	struct stralloc tmp = STRALLOC_INIT;
 
-	log_init();
+	log_init(3);
 
 	ARG_BEGIN {
 	case 'v':
@@ -44,22 +44,22 @@ main(int argc, char **argv)
 	if (!(user = *argv++)) usage();
 	if (*argv) usage();
 
-	if (!listxt_valid(user)) log_fatal_sys(111, "invalid username");
-	if (!listxt_get(flag_f, &line, &ga, 0, user)) log_fatal_sys(111, "open ", flag_f);
-	if (genalloc_len(char *, &ga) == 0) log_fatal_sys(111, "user ",user," absent from ",flag_f);
+	if (!listxt_valid(user)) log_fatal(111, "invalid username");
+	if (!listxt_get(flag_f, &line, &ga, 0, user)) log_fatal(111, "open ", flag_f);
+	if (genalloc_len(char *, &ga) == 0) log_fatal(111, "user ",user," absent from ",flag_f);
 
-	if (!listxt_tmp(&tmp, flag_f)) log_fatal_sys(111, "alloc");
-	if ((bi.fd = open_read(flag_f)) == -1) log_fatal_sys(111, "open ",flag_f);
-	if ((bo.fd = open_truncate(tmp.s)) == -1) log_fatal_sys(111, "open ",tmp.s);
+	if (!listxt_tmp(&tmp, flag_f)) log_fatal(111, "alloc");
+	if ((bi.fd = open_read(flag_f)) == -1) log_fatal(111, "open ",flag_f);
+	if ((bo.fd = open_truncate(tmp.s)) == -1) log_fatal(111, "open ",tmp.s);
 
 	while (listxt_getline(&bi, &line, &ga)) {
 		if (genalloc_len(char *, &ga) == 0) continue;
 		if (str_equal(genalloc_s(char *, &ga)[0], user)) continue;
-		if (!listxt_put(&bo, &ga)) log_fatal_sys(111, "write");
+		if (!listxt_put(&bo, &ga)) log_fatal(111, "write");
 	}
-	if (!buffer_flush(&bo)) log_fatal_sys(111, "write");
+	if (!buffer_flush(&bo)) log_fatal(111, "write");
 
-	if (rename(tmp.s, flag_f) == -1) log_fatal_sys(111, tmp.s," -> ",flag_f);
+	if (rename(tmp.s, flag_f) == -1) log_fatal(111, tmp.s," -> ",flag_f);
 
 	return 0;
 }

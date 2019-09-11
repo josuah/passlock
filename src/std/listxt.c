@@ -67,19 +67,18 @@ listxt_put(struct buffer *b, struct genalloc *ga)
 size_t
 listxt_scan(char *s)
 {
-	return str_chr(s, ':');
+	return str_char(s, ':');
 }
 
 int
 listxt_tmp(struct stralloc *sa, char const *path)
 {
-	char num[50];
+	char num[30];
 
-	num[fmt_long(num, getpid())] = '\0';
 	stralloc_zero(sa);
 	if (!stralloc_cats(sa, path)) return 0;
 	if (!stralloc_cats(sa, ".")) return 0;
-	if (!stralloc_cats(sa, num)) return 0;
+	if (!stralloc_cats(sa, fmt(u64, num, getpid()))) return 0;
 	if (!stralloc_cat0(sa)) return 0;
 
 	return 1;

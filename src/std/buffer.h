@@ -7,6 +7,10 @@
 #include <stddef.h>
 #include <unistd.h>
 
+/*
+ * From Dan Bernstein code for djbdns, under public domain.
+ */
+
 struct buffer {
 	char *x;
 	size_t a;  // allocated size, 0 means fd closed
@@ -30,10 +34,10 @@ int             buffer_dump(int, int);
 int             buffer_flush(struct buffer *);
 int             buffer_get(struct buffer *, char *, size_t);
 int             buffer_gettoken(struct buffer *, struct stralloc *, char);
-int             buffer_pad(struct buffer *, char const *, char *, size_t);
+int             buffer_pad(struct buffer *, char const *, char, size_t);
 int             buffer_put(struct buffer *, const char *, size_t);
 int             buffer_putc(struct buffer *, char);
-int             buffer_putn(struct buffer *, unsigned long);
+int             buffer_putn(struct buffer *, u64);
 int             buffer_ungetc(struct buffer *, char);
 size_t          buffer_fill(struct buffer *);
 ssize_t         buffer_read(int, char *, size_t);

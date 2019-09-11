@@ -108,7 +108,7 @@ buffer_ungetc(struct buffer *b, char c)
 }
 
 int
-buffer_gettoken(struct buffer *b, struct stralloc *sa, char x)
+buffer_gettoken(struct buffer *b, struct stralloc *sa, char t)
 {
 	ssize_t r;
 	ssize_t n = 0;
@@ -116,12 +116,12 @@ buffer_gettoken(struct buffer *b, struct stralloc *sa, char x)
 
 	stralloc_zero(sa);
 	while ((r = buffer_getc(b, &c)) > 0) {
-		if (!stralloc_catc(sa, c)) return -1;
-		if (c == x) return 1;
+		if (!stralloc_catc(sa, c)) return 0;
+		if (c == t) return 2;
 		++n;
 	}
 
-	return r;
+	return 1;
 }
 
 void
@@ -136,10 +136,10 @@ buffer_init(struct buffer *b, ssize_t (*op)(), int fd, char *s, size_t n)
 }
 
 int
-buffer_pad(struct buffer *b, char const *s, char *pad, size_t n)
+buffer_pad(struct buffer *b, char const *s, char c, size_t n)
 {
 	for (size_t i = str_len(s); i < n; i++)
-		if (!buffer_puts(b, pad)) return 0;
+		if (!buffer_putc(b, c)) return 0;
 
 	return 1;
 }
@@ -162,9 +162,9 @@ buffer_putc(struct buffer *b, char c)
 }
 
 int
-buffer_putn(struct buffer *b, unsigned long ul)
+buffer_putn(struct buffer *b, u64 u)
 {
 	char num[30];
 
-	return buffer_put(b, num, fmt_ulong(num, ul));
+	return buffer_puts(b, fmt(u64, num, u));
 }

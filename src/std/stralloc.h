@@ -4,6 +4,11 @@
 #include "std/str.h"
 #include <stddef.h>
 
+/*
+ * Adapted from Dan Bernstein (cr.yp.to) code for djbdns (public domain) as
+ * well as from Laurent Bercot (skarnet.org) code for skalibs (ISC licence).
+ */
+
 struct stralloc {
 	char* s;
 	size_t n;

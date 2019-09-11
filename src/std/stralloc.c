@@ -10,15 +10,15 @@ stralloc_catb(struct stralloc *sa, const char *x, size_t n)
 	if (!stralloc_ready(sa, sa->n + n)) return 0;
 	mem_copy(sa->s + sa->n, x, n);
 	sa->n += n;
+
 	return 1;
 }
 
 void
 stralloc_init(struct stralloc *sa)
 {
-	sa->s = 0;
-	sa->a = 0;
-	sa->n = 0;
+	struct stralloc sa0 = STRALLOC_INIT;
+	mem_copy(sa, &sa0, sizeof *sa);
 }
 
 void
@@ -38,6 +38,7 @@ stralloc_ready(struct stralloc *sa, size_t n)
 	if (!(x = realloc(sa->s, wanted))) return 0;
 	sa->a = wanted;
 	sa->s = x;
+
 	return 1;
 }
 
@@ -53,9 +54,8 @@ stralloc_chomp(struct stralloc *sa)
 void
 stralloc_strip(struct stralloc *sa)
 {
-	while (sa->n > 0) {
-		char sp = sa->s[sa->n - 1];
-		if (sp == ' ' || sp == '\t') break;
-		sa->n--;
+	for (; sa->n > 0; sa->n--) {
+		char c = sa->s[sa->n - 1];
+		if (c != ' ' && c != '\t') break;
 	}
 }

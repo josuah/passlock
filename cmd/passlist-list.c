@@ -22,7 +22,7 @@ main(int argc, char **argv)
 	struct stralloc sa = STRALLOC_INIT;
 	struct genalloc ga = GENALLOC_INIT;
 
-	log_init();
+	log_init(3);
 
 	ARG_BEGIN {
 	case 'v':
@@ -38,19 +38,19 @@ main(int argc, char **argv)
 
 	if (*argv) usage();
 
-	if ((b.fd = open_read(flag_f)) == -1) log_fatal_sys(111, "open ",flag_f);
+	if ((b.fd = open_read(flag_f)) == -1) log_fatal(111, "open ",flag_f);
 
 	buffer_puts(buffer_1, "user                      path\n");
 	while (listxt_getline(&b, &sa, &ga)) {
 		buffer_puts(buffer_1, " ");
 		buffer_puts(buffer_1, genalloc_s(char *, &ga)[0]);
-		buffer_pad(buffer_1, genalloc_s(char *, &ga)[0], " ", 95);
+		buffer_pad(buffer_1, genalloc_s(char *, &ga)[0], ' ', 95);
 		buffer_puts(buffer_1, " ");
 		buffer_puts(buffer_1, genalloc_s(char *, &ga)[2]);
 		buffer_puts(buffer_1, "\n");
 	}
 
-	if (!buffer_flush(buffer_1)) log_fatal_sys(111, "write");
+	if (!buffer_flush(buffer_1)) log_fatal(111, "write");
 
 	return 0;
 }

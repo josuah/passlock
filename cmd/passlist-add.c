@@ -28,7 +28,7 @@ main(int argc, char **argv)
 	struct stralloc tmp = STRALLOC_INIT;
 	struct stralloc pass = STRALLOC_INIT;
 
-	log_init();
+	log_init(3);
 
 	ARG_BEGIN {
 	case 'v':
@@ -48,32 +48,32 @@ main(int argc, char **argv)
 
 	if (!listxt_valid(user)) log_fatal(1, "invalid username");
 	if (!listxt_valid(path)) log_fatal(1, "invalid path");
-	if (!listxt_get(flag_f, &line, &ga, 0, user)) log_fatal_sys(111, "open ",flag_f);
+	if (!listxt_get(flag_f, &line, &ga, 0, user)) log_fatal(111, "open ",flag_f);
 	if (genalloc_len(char *, &ga) > 0) log_fatal(1, "user ",user," exist on ",flag_f);
 
-	if ((fd = open_read(flag_f)) == -1) log_fatal_sys(111, "open ",flag_f);
-	if (!listxt_tmp(&tmp, flag_f)) log_fatal_sys(111, "alloc");
-	if ((b.fd = open_truncate(tmp.s)) == -1) log_fatal_sys(111, "open ",tmp.s);
+	if ((fd = open_read(flag_f)) == -1) log_fatal(111, "open ",flag_f);
+	if (!listxt_tmp(&tmp, flag_f)) log_fatal(111, "alloc");
+	if ((b.fd = open_truncate(tmp.s)) == -1) log_fatal(111, "open ",tmp.s);
 	log_debug("copying \"",flag_f,"\" to \"",tmp.s,"\"");
-	if (buffer_dump(b.fd, fd) == -1) log_fatal_sys(111, "copy");
+	if (buffer_dump(b.fd, fd) == -1) log_fatal(111, "copy");
 
-	if (!buffer_getline(buffer_0, &pass)) log_fatal_sys(111, "read stdin");
+	if (!buffer_getline(buffer_0, &pass)) log_fatal(111, "read stdin");
 	stralloc_chomp(&pass);
 
 	log_debug("hashing password");
 	if (crypto_pwhash_str(hash, pass.s, pass.n,
 		crypto_pwhash_OPSLIMIT_MODERATE,
-		crypto_pwhash_MEMLIMIT_MODERATE) != 0) log_fatal_sys(111, "alloc");
+		crypto_pwhash_MEMLIMIT_MODERATE) != 0) log_fatal(111, "alloc");
 
-	if (!buffer_puts(&b, user)) log_fatal_sys(111, "write");
-	if (!buffer_puts(&b, ":")) log_fatal_sys(111, "write");
-	if (!buffer_puts(&b, hash)) log_fatal_sys(111, "write");
-	if (!buffer_puts(&b, ":")) log_fatal_sys(111, "write");
-	if (!buffer_puts(&b, path)) log_fatal_sys(111, "write");
-	if (!buffer_puts(&b, "\n")) log_fatal_sys(111, "write");
-	if (!buffer_flush(&b)) log_fatal_sys(111, "write");
+	if (!buffer_puts(&b, user)) log_fatal(111, "write");
+	if (!buffer_puts(&b, ":")) log_fatal(111, "write");
+	if (!buffer_puts(&b, hash)) log_fatal(111, "write");
+	if (!buffer_puts(&b, ":")) log_fatal(111, "write");
+	if (!buffer_puts(&b, path)) log_fatal(111, "write");
+	if (!buffer_puts(&b, "\n")) log_fatal(111, "write");
+	if (!buffer_flush(&b)) log_fatal(111, "write");
 
-	if (rename(tmp.s, flag_f) == -1) log_fatal_sys(111, tmp.s," -> ",flag_f);
+	if (rename(tmp.s, flag_f) == -1) log_fatal(111, tmp.s," -> ",flag_f);
 
 	return 0;
 }

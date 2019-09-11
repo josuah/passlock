@@ -1,37 +1,46 @@
 #include "std/int.h"
 
+#include "std/fmt.h"
+
+static i8 num[256] = {
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
+	 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1, 
+	-1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 
+	25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1, 
+	-1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 
+	25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1, 
+};
+
+size_t u8_fmt(char *s, u8 u)   { return fmt_u(s, u, 10); }
+size_t u16_fmt(char *s, u16 u) { return fmt_u(s, u, 10); }
+size_t u32_fmt(char *s, u32 u) { return fmt_u(s, u, 10); }
+size_t u64_fmt(char *s, u64 u) { return fmt_u(s, u, 10); }
+
+size_t i8_fmt(char *s, i8 i)   { return fmt_i(s, i, 10); }
+size_t i16_fmt(char *s, i16 i) { return fmt_i(s, i, 10); }
+size_t i32_fmt(char *s, i32 i) { return fmt_i(s, i, 10); }
+size_t i64_fmt(char *s, i64 i) { return fmt_i(s, i, 10); }
+
 // u8
 
 int
 u8_scan_base_char(char c, u8 *u, u8 base)
 {
-	static i8 num[256] = {
-		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-		 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1, 
-		-1, 10, 11, 12, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 
-		25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1, 
-		-1, 10, 11, 12, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 
-		25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1, 
-	};
-
 	*u = num[(int)c];
-	return num[(int)c] >= 0 && num[(int)c] < base;
+	return num[(int)c] >= 0 && *u < base;
 }
 
 size_t
 u8_scan_base(char const *s, u8 *u, u8 b)
 {
 	u8 c;
-	int r;
 	u8 x = 0;
 	size_t i;
 
-	r = (UINT8_MAX * b) / b;
 	for (i = 0; u8_scan_base_char(s[i], &c, b); i++) {
 		if (x > UINT8_MAX / b) return 0;
-		if (x == UINT8_MAX / b && c >= r) return 0;
 		*u = x = x * b + c;
 	}
 	return i;
@@ -73,14 +82,11 @@ size_t
 u16_scan_base(char const *s, u16 *u, u8 b)
 {
 	u8 c;
-	int r;
 	u16 x = 0;
 	size_t i;
 
-	r = (UINT16_MAX * b) / b;
 	for (i = 0; u8_scan_base_char(s[i], &c, b); i++) {
 		if (x > UINT16_MAX / b) return 0;
-		if (x == UINT16_MAX / b && c >= r) return 0;
 		*u = x = x * b + c;
 	}
 	return i;
@@ -130,14 +136,11 @@ size_t
 u32_scan_base(char const *s, u32 *u, u8 b)
 {
 	u8 c;
-	int r;
 	u32 x = 0;
 	size_t i;
 
-	r = (UINT32_MAX * b) / b;
 	for (i = 0; u8_scan_base_char(s[i], &c, b); i++) {
 		if (x > UINT32_MAX / b) return 0;
-		if (x == UINT32_MAX / b && c >= r) return 0;
 		*u = x = x * b + c;
 	}
 	return i;
@@ -203,15 +206,32 @@ size_t
 u64_scan_base(char const *s, u64 *u, u8 b)
 {
 	u8 c;
-	int r;
 	u64 x = 0;
 	size_t i;
 
-	r = (UINT64_MAX * b) / b;
 	for (i = 0; u8_scan_base_char(s[i], &c, b); i++) {
 		if (x > UINT64_MAX / b) return 0;
-		if (x == UINT64_MAX / b && c >= r) return 0;
 		*u = x = x * b + c;
 	}
 	return i;
+}
+
+// i64
+
+size_t
+i64_scan_base(char const *s, i64 *u, u8 b)
+{
+	u8 c;
+	u64 x = 0;
+	size_t i, n = 0;
+	int sign = 1;
+
+	while (*s == '-') { s++; n++; sign *= -1; }
+	for (i = 0; u8_scan_base_char(s[i], &c, b); i++) {
+		if (x > UINT64_MAX / b) return 0;
+		*u = x = x * b + c;
+	}
+	*u *= sign;
+
+	return n + i;
 }

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 int
-range_contain(struct genalloc *ga, u64 u)
+range_has(struct genalloc *ga, u64 u)
 {
 	for (size_t i = 0; i < genalloc_len(struct range, ga); i++) {
 		struct range *r = genalloc_s(struct range, ga) + i;

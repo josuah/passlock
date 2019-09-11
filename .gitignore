@@ -1,4 +1,5 @@
 *.o
 *.a
 *.core
-passlist-*[!.]?
+/cmd/*[!.]?
+/cmd/test

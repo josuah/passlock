@@ -1,5 +1,7 @@
 #include "std/mem.h"
 
+#include <stddef.h>
+
 size_t
 mem_chr(char const *s, size_t n, char c)
 {
