@@ -1,5 +1,5 @@
 VERSION = 0.4
 W = -Wall -Wextra -std=c99 --pedantic -Wno-unused-parameter
-CFLAGS = $W -g -I'src' -DVERSION='"${VERSION}"' -D_DEFAULT_SOURCE
-LFLAGS = $W -static
+CFLAGS = $W -I'/usr/local/include' -g -I'src' -DVERSION='"${VERSION}"'
+LFLAGS = $W -L'/usr/local/lib' -static
 LIB = -lsodium -lpthread

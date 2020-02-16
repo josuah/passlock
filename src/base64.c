@@ -1,10 +1,10 @@
-#include "std/base64.h"
+#include "base64.h"
 
-#include "std/int.h"
 #include <stdio.h>
 #include <stddef.h>
+#include <stdint.h>
 
-i8 base64_char[256] = {
+static int8_t base64_char[256] = {
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 
@@ -30,7 +30,7 @@ base64_encode(char const *s, size_t sn, char *d)
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef"
 		"ghijklmnopqrstuvwxyz0123456789+/";
 	size_t si = 0, di = 0;
-	u8 x;
+	uint64_t x;
 
 	for (si = 0; si < sn; si++) {
 		switch (si % 3) {
@@ -65,11 +65,11 @@ base64_decode(char const *s, size_t sn, char *d, size_t *dn)
 
 	sn -= sn % 4;
 	while (si < sn) {
-		char c0 = s[si++]; i8 x0 = base64_char[(int)c0];
-		char c1 = s[si++]; i8 x1 = base64_char[(int)c1];
-		char c2 = s[si++]; i8 x2 = base64_char[(int)c2];
-		char c3 = s[si++]; i8 x3 = base64_char[(int)c3];
-		u32 x = (x0 << 18) | (x1 << 12) | (x2 << 6) | (x3 << 0);
+		char c0 = s[si++]; int8_t x0 = base64_char[(unsigned)c0];
+		char c1 = s[si++]; int8_t x1 = base64_char[(unsigned)c1];
+		char c2 = s[si++]; int8_t x2 = base64_char[(unsigned)c2];
+		char c3 = s[si++]; int8_t x3 = base64_char[(unsigned)c3];
+		uint32_t x = (x0 << 18) | (x1 << 12) | (x2 << 6) | (x3 << 0);
 
 		/* only "xxxx" or "xxx=" or "xx==" allowed  */
 		if (c0 == '=' || c1 == '=' || (c2 == '=' && c3 != '=')) break;
