@@ -3,39 +3,61 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include "buf.h"
+#include "fmtnum.h"
+
+void
+listxt_free_list(struct listxt **list)
+{
+	for (; *list; list++)
+		listxt_free(*list);
+	free(list);
+}
 
 struct listxt **
-listxt_file(char *path, size_t n, char *s)
+listxt_file(char *path, char *s, size_t min, size_t max)
 {
-	char bx[1024];
-	struct buf file;
+	FILE *fp;
+	struct listxt **list, *lst;
+	void *o;
+	size_t len, n;
 
-	buf_
+	list = NULL;
 
-	if ((file.fd = open(path, O_RDONLY)) == -1)
+	fp = fopen(path, "r")
+	if (!fp)
 		return 0;
 
-	while (listxt_getline(&file, sa, ga)) {
-		if (genalloc_len(char *, ga) < n)
-			continue;
-		if (strcmp(genalloc_s(char *, ga)[n], s) == 0)
-			goto end;
+	for (n = 0; (len = listxt_getline(fp, &lst)); n++) {
+		if (len > max || len < min) {
+			errno = EINVAL;
+			return 0;
+		}
+		o = realloc(list, n * sizeof *lst);
+		if (!o) {
+			list[n] = 0;
+			listxt_free_list(list);
+			listxt_free(lst);
+			return 0;
+		}
+		list = o;
+		list[n - 1] = lst,
+		list[n] = 0;
 	}
-	genalloc_zero(char *, ga);
-end:
 	close(file.fd);
-	return 1;
+	return list;
 }
 
 struct listxt **
 listxt_add(struct listxt **link, char *field)
 {
-	if (!(*link = calloc(sizeof **link, 1)))
+	*link = calloc(sizeof **link, 1);
+	if (!*link)
 		return 0;
 	(*link)->field = field;
 	return &(*link)->next;
@@ -51,36 +73,35 @@ listxt_free(struct listxt *lst)
 		free(lst);
 }
 
-struct listxt *
-listxt_getline(struct buf *file)
+size_t
+listxt_getline(FILE *fp, struct listxt **link)
 {
-	struct buf mem;
-	struct listxt **link, *first;
-	size_t i, n;
-	char *s;
-
-	buf_init_mem(&mem);
+	struct listxt **first;
+	char *field, *line;
+	size_t n;
 
 	errno = 0;
-	first = NULL;
-	link = &first;
 
-	if (!(str = buf_getline(file)))
-		return 0;
-	while ((field = strsep(&str, ":")))
-		if (!(link = listxt_add(link)))
-			goto error;
-	return first;
+	*first = NULL;
+	first = link;
+	n = 0;
+	line = NULL;
+	if (getline(&line, &n, fp) == -1)
+		goto error;
+	for (n = 0; (field = strsep(&line, ":")); n++) {
+		lst = listxt_add(lst, field);
+	}
+	return n;
 error:
-	buf_free(file)
-	listxt_free(first);
+	free(line);
+	listxt_free(*first);
 	return 0;
 }
 
 int
 listxt_valid(char *s)
 {
-	for (;;)
+	for (;;) {
 		switch (*s++) {
 		case '\0':
 			return 1;
@@ -91,26 +112,23 @@ listxt_valid(char *s)
 }
 
 int
-listxt_put(struct buf *file, struct listxt *lst)
+listxt_put(FILE *fp, struct listxt *lst)
 {
 	for (; lst; lst = lst->next) {
-		if (!buf_put(file, lst->field))
+		if (fprintf(fp, lst->next ? ":%s" : "%s", lst->field)) < 0)
 			return 0;
-		if (lst->next)
-			if (!buf_put(file, ":"))
-				return 0;
 	}
-	if (!buf_put(b, "\n"))
-		return 0;
-	return 1;
+	if (fprintf(fp, "\n") < 0)
+		return -1;
+	return 0;
 }
 
 int
-listxt_tmp(struct buf *sa, char const *path)
+listxt_tmp(struct buf *buf, char const *path)
 {
 	char num[30];
 
-	if (!buf_put(buf, path, ".", fmt_num(num, getpid())))
+	if (!buf_puts(buf, path, ".", fmtnum(num, getpid())))
 		return 0;
 
 	return 1;

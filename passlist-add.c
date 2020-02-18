@@ -1,11 +1,11 @@
 #include <stdio.h>  /* for rename(2) */
 #include <fcntl.h>
+#include <unistd.h>
 
 #include <sodium.h>
 
-#include "src/buf.h"
-#include "src/listxt.h"
-#include "src/log.h"
+#include "listxt.h"
+#include "log.h"
 
 char *flag_f = "/etc/passlist/default";
 char *arg0 = NULL;
@@ -19,17 +19,13 @@ usage(void)
 int
 main(int argc, char **argv)
 {
+	char path[PATH_MAX];
 	char bs[1024];
-	struct buf buf;
-	struct genalloc ga = GENALLOC_INIT;
-	struct buf line = STRALLOC_INIT;
-	struct buf tmp = STRALLOC_INIT;
-	struct buf pass = STRALLOC_INIT;
+	struct buf file_rd, file_wr, line, tmp, pass;
 	char *user, *path, hash[crypto_pwhash_STRBYTES];
 	int fd, c;
 
 	log_init(3);
-	buf_init_file(&buf, write, 0, bs, sizeof bs)
 
 	optind = 0;
 	arg0 = *argv;
@@ -63,14 +59,20 @@ main(int argc, char **argv)
 	if (genalloc_len(char *, &ga) > 0)
 		log_fatal(1, "user ",user," exist on ",flag_f);
 
-	if ((fd = open(flag_f, O_RDONLY)) == -1)
+	buf_init_static(&file_rd, bs, sizeof bs);
+	if ((file_rd.fd = open(flag_f, O_RDONLY)) == -1)
 		log_fatal(111, "open ",flag_f);
-	if (!listxt_tmp(&tmp, flag_f))
+
+	buf_init_static(&tmp, bs, sizeof bs);
+	if (!listxt_tmp(&tmp, flag_f) || (s = buf_str(tmp)))
 		log_fatal(111, "alloc");
-	if ((buf.fd = open(tmp.s, O_WRONLY | O_CREAT | O_APPEND)) == -1)
+
+	buf_init_static(&file_wr, bs, sizeof bs);
+	if ((file_wr.fd = open(tmp.s, O_WRONLY | O_CREAT | O_APPEND)) == -1)
 		log_fatal(111, "open ",tmp.s);
+
 	log_debug("copying \"",flag_f,"\" to \"",tmp.s,"\"");
-	if (buf_dump(buf.fd, fd) == -1)
+	if (buf_dump(file_rd.fd, fd) == -1)
 		log_fatal(111, "copy");
 
 	if (!buf_getline(b0, &pass))

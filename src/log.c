@@ -1,45 +1,99 @@
-#include <stdlib.h>
-
-#include "buf.h"
 #include "log.h"
 
+#include <string.h>
+
+/*
+ * log.c - log to standard error according to the log level
+ *
+ * Instead of logging to syslog, delegate logging to a separate
+ * tool, such as FreeBSD's daemon(8), POSIX's logger(1).
+ *
+ * log_init() sets the log level to the "LOG" environment variable
+ * if set, or to 4 (log down to info included) otherwise.
+ */
+
+#include <errno.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define LOG_DEFAULT 3
+
+int log_level = -1;
+
 void
-log_init(int level)
+vlogf(int exitcode, int level, char const *flag, char const *fmt, va_list va)
 {
 	char *env;
 
-	env = getenv("LOG")
-	log_level = env ? atoi(env) : 0;
-	log_level = (log_level == 0) ? level : log_level;
-}
+	if (log_level == -1) {
+		env = getenv("LOG");
+		log_level = env ? atoi(env) : 0;
+		log_level = log_level > 0 ? log_level : LOG_DEFAULT;
+	}
 
-void
-log_va(int exitcode, int level, char *flag, va_list va)
-{
-	char *s;
-
-	if (log_level < level)
+	if (log_level > level)
 		goto end;
 
-	buf_put_va(buf_2, va);
+	fprintf(stderr, "%s: ", flag);
+	vfprintf(stderr, fmt, va);
 
 	if (errno)
-		buf_put(buf_2, ": ", strerror(errno));
+		fprintf(stderr, ": %s", strerror(errno));
 	errno = 0;
 
-	buf_put(buf_2, "\n");
-	buf_flush(buf_2);
+	fprintf(stderr, "\n");
+	fflush(stderr);
 end:
-	if (exit_code)
-		exit(exit_code);
+	if (exitcode)
+		exit(exitcode);
 }
 
 void
-log_(int exitcode, int level, char const *flag, ...)
+fatal(int exitcode, char const *fmt, ...)
 {
 	va_list va;
 
-	va_start(va, msg);
-	log_va(exitcode, level, arg0, fmt, va);
+	va_start(va, fmt);
+	vlogf(exitcode, 0, "fatal", fmt, va);
+	va_end(va);
+}
+
+void
+error(char const *fmt, ...)
+{
+	va_list va;
+
+	va_start(va, fmt);
+	vlogf(0, 1, "error", fmt, va);
+	va_end(va);
+}
+
+void
+warn(char const *fmt, ...)
+{
+	va_list va;
+
+	va_start(va, fmt);
+	vlogf(0, 2, "warn", fmt, va);
+	va_end(va);
+}
+
+void
+info(char const *fmt, ...)
+{
+	va_list va;
+
+	va_start(va, fmt);
+	vlogf(0, 3, "info", fmt, va);
+	va_end(va);
+}
+
+void
+debug(char const *fmt, ...)
+{
+	va_list va;
+
+	va_start(va, fmt);
+	vlogf(0, 4, "debug", fmt, va);
 	va_end(va);
 }

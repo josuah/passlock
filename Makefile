@@ -23,6 +23,6 @@ install: ${bin}
 	mkdir -p ${PREFIX}/bin
 	cp ${bin} bin/* ${PREFIX}/bin
 	mkdir -p ${PREFIX}/share/man/man1
-	cp -f doc/*.1  ${PREFIX}/share/man/man1
+	cp -f *.1  ${PREFIX}/share/man/man1
 	mkdir -p ${PREFIX}/share/man/man8
-	cp -f doc/*.8  ${PREFIX}/share/man/man8
+	cp -f *.8  ${PREFIX}/share/man/man8
