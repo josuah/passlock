@@ -14,6 +14,7 @@
 .Nm passlist-check
 .Op Fl v
 .Op Fl f Ar passfile
+.Op Fl s Ar sleep
 .Ar ...
 .Ar 3<user-pass
 .
@@ -22,7 +23,7 @@
 .
 The
 .Nm
-utility read a checkpassword-formatted string from file descriptor 3, and checks
+toolity read a checkpassword-formatted string from file descriptor 3, and checks
 it against the passlist file used.
 .
 .Pp
@@ -44,6 +45,11 @@ Display the version.
 .
 .It Fl f Ar passfile
 Specifies the file to use as a password storage.
+.
+.It Fl s Ar sleep
+Wait for
+.Ar sleep
+seconds in case the password fails.
 .
 .El
 .

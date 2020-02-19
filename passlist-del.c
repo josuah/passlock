@@ -1,78 +1,82 @@
-#include <stdio.h> /* for rename(2) */
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-#include "src/buffer.h"
-#include "src/listxt.h"
-#include "src/log.h"
-#include "src/stralloc.h"
+#include "listxt.h"
+#include "log.h"
 
-char *flag_f = "/etc/passlist/default";
+char *file = "/etc/passlist/default";
 char *arg0 = NULL;
 
 void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-v] [-f passfile] user", arg0);
-	exit(EX_USAGE);
+	fprintf(stderr, "usage: %s [-v] [-f passfile] user\n", arg0);
+	exit(100);
 }
 
 int
 main(int argc, char **argv)
 {
-	struct genalloc ga = GENALLOC_INIT;
-	FILE *fi, *fo;
-	struct stralloc line = STRALLOC_INIT;
-	char path[2048];
-
-	init(3);
+	FILE *frd, *fwr;
+	char tmp[2048], *user, *list[3];
+	size_t sz;
+	ssize_t r;
+	int c;
 
 	optind = 0;
 	arg0 = *argv;
 	while ((c = getopt(argc, argv, "vf:")) != -1) {
 		switch (c) {
 		case 'v':
-			buffer_puts(buffer_1, VERSION);
-			buffer_flush(buffer_1);
-			break;
+			fprintf(stdout, "%s\n", VERSION);
+			exit(0);
 		case 'f':
-			flag_f = optarg;
+			file = optarg;
 			break;
 		case '?':
 			usage();
 		}
 	}
 
-	if (!(user = *argv++))
+	user = *argv++;
+	if (user == NULL)
 		usage();
 	if (*argv)
 		usage();
 
-	if (!listxt_valid(user))
+	if (!listxt_isvalid(user))
 		fatal(111, "invalid username");
-	if (!listxt_get(flag_f, &line, &ga, 0, user))
-		fatal(111, "opening %s", flag_f);
-	if (genalloc_len(char *, &ga) == 0)
-		fatal(111, "user %s absent from %s", user, flag_f);
+	if (listxt_get(file, list, 3, 0, user) == -1)
+		fatal(111, "opening %s", file);
+	if (list[0] == NULL)
+		fatal(100, "user %s not in %s", user, file);
 
-	if (!listxt_tmp(&tmp, flag_f))
-		fatal(111, "alloc");
-	if ((fi = fopen(flag_f, "r")) == -1)
-		fatal(111, "open ",flag_f);
-	if ((fo = fopen(path, "w")) == -1)
-		fatal(111, "open ",tmp.s);
+	assert(listxt_tmppath(tmp, sizeof tmp, file) > -1);
+	frd = fopen(file, "r");
+	if (frd == NULL)
+		fatal(111, "opening ",file);
+	fwr = fopen(tmp, "w");
+	if (fwr == NULL)
+		fatal(111, "opening %s", tmp);
 
-	while ((n = listxt_getline(fi, &ga)) > 0) {
-		if (str_equal(genalloc_s(char *, &ga)[0], user))
+	sz = 0;
+	while ((r = listxt_getline(list, &sz, 3, frd)) > -1) {
+		if (strcmp(list[0], user) == 0)
 			continue;
-		if (listxt_put(fo, &ga) == -1)
+		if (listxt_fput(fwr, list, r) == -1)
 			fatal(111, "write");
 	}
 	if (errno)
-		fatal(111, "reding a line from %s", path);
-	if (fflush(fo) == EOF)
+		fatal(111, "reding a line from %s", tmp);
+	if (fflush(fwr) == EOF)
 		fatal(111, "write");
 
-	if (rename(path, flag_f) == -1)
-		fatal(111, "%s -> %s", path, flag_f);
+	if (rename(tmp, file) == -1)
+		fatal(111, "%s -> %s", tmp, file);
 
 	return 0;
 }

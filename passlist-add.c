@@ -7,91 +7,99 @@
 #include "listxt.h"
 #include "log.h"
 
-char *flag_f = "/etc/passlist/default";
+char *file = "/etc/passlist/default";
 char *arg0 = NULL;
 
 void
 usage(void)
 {
-	log_usage(arg0, " [-v] [-f passfile] user path <passphrase");
+	fprintf(stdout, "usage: %s [-v] [-f passfile] user path <passphrase\n", arg0);
+	exit(1);
 }
 
 int
 main(int argc, char **argv)
 {
-	char path[PATH_MAX];
-	char bs[1024];
-	struct buf file_rd, file_wr, line, tmp, pass;
-	char *user, *path, hash[crypto_pwhash_STRBYTES];
-	int fd, c;
-
-	log_init(3);
+	char *user, *line, *pass, tmp[2048], hash[crypto_pwhash_STRBYTES];
+	FILE *frd, *fwr;
+	struct listxt *lst;
+	ssize_t n;
+	int c;
 
 	optind = 0;
 	arg0 = *argv;
 	while ((c = getopt(argc, argv, "vf:")) != -1) {
 		switch (c) {
 		case 'v':
-			buf_puts(b1, VERSION);
-			buf_flush(b1);
-			break;
+			fprintf(stdout, "%s\n", VERSION);
+			exit(0);
 		case 'f':
-			flag_f = optarg;
+			file = optarg;
 			break;
 		case '?':
 			usage();
 		}
 	}
 
-	if (!(user = *argv++))
+	user = *argv++;
+	if (user == NULL || !listxt_valid(user)) {
+		error("invalid username");
 		usage(); 
-	if (!(path = *argv++))
+	}
+
+	file = *argv++;
+	if (file == NULL) {
+		error("invalid path");
 		usage();
-	if (*argv)
+	}
+
+	if (*argv) {
+		error("too many arguments");
 		usage();
+	}
 
-	if (!listxt_valid(user))
-		log_fatal(1, "invalid username");
-	if (!listxt_valid(path))
-		log_fatal(1, "invalid path");
-	if (!listxt_get(flag_f, &line, &ga, 0, user))
-		log_fatal(111, "open ",flag_f);
-	if (genalloc_len(char *, &ga) > 0)
-		log_fatal(1, "user ",user," exist on ",flag_f);
+	n = listxt_get(file, &line, 0, user);
+	if (n == -1)
+		fatal(111, "getting value from %s", file);
+	if (n > 0)
+		fatal(1, "user %s exist on %s", user, file);
 
-	buf_init_static(&file_rd, bs, sizeof bs);
-	if ((file_rd.fd = open(flag_f, O_RDONLY)) == -1)
-		log_fatal(111, "open ",flag_f);
+	frd = fopen(file, "r");
+	if (frd == NULL)
+		fatal(111, "opening %s", file);
 
-	buf_init_static(&tmp, bs, sizeof bs);
-	if (!listxt_tmp(&tmp, flag_f) || (s = buf_str(tmp)))
-		log_fatal(111, "alloc");
+	if (listxt_tmp(tmp, sizeof(tmp), file) == -1)
+		fatal(111, "alloc");
 
-	buf_init_static(&file_wr, bs, sizeof bs);
-	if ((file_wr.fd = open(tmp.s, O_WRONLY | O_CREAT | O_APPEND)) == -1)
-		log_fatal(111, "open ",tmp.s);
+	fwr = fopen(file, "w");
+	if (fwr == NULL)
+		fatal(111, "opening %s", tmp);
 
-	log_debug("copying \"",flag_f,"\" to \"",tmp.s,"\"");
-	if (buf_dump(file_rd.fd, fd) == -1)
-		log_fatal(111, "copy");
+	fdump(frd, fwr);
+	if (ferror(frd) || ferror(fwr))
+		fatal(111, "copying from %s to %s", file, tmp);
 
-	if (!buf_getline(b0, &pass))
-		log_fatal(111, "read stdin");
-	buf_chomp(&pass);
+	fclose(frd);
 
-	log_debug("hashing password");
-	if (crypto_pwhash_str(hash, pass.s, pass.n,
+	pass = NULL;
+	if (getline(&pass, &n, stdin) == -1)
+		fatal(111, "reading stdin");
+	strchomp(pass);
+
+	debug("hashing password");
+	assert(crypto_pwhash_str(hash, pass, n,
 		crypto_pwhash_OPSLIMIT_MODERATE,
-		crypto_pwhash_MEMLIMIT_MODERATE) != 0)
-		log_fatal(111, "alloc");
+		crypto_pwhash_MEMLIMIT_MODERATE) == 0);
 
-	if (!buf_put(&buf, user,": ",hash,": ",path,"\n"))
-		log_fatal(111, "write");
-	if (!buf_flush(&b))
-		log_fatal(111, "write");
+	free(pass);
 
-	if (rename(tmp.s, flag_f) == -1)
-		log_fatal(111, tmp.s," -> ",flag_f);
+	fprintf(fwr, "%s:%s:%s\n", user, hash, tmp);
+	fflush(fwr);
+	if (ferror(fwr))
+		fatal(111, "writing to file");
+
+	if (rename(tmp, file) == -1)
+		fatal(111, "renaming from '%s' to '%s'", tmp, file);
 
 	return 0;
 }

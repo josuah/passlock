@@ -1,92 +1,104 @@
+#include <assert.h>
 #include <errno.h>
-#include <sodium.h>
+#include <string.h>
 #include <unistd.h>
 
-#include "src/listxt.h"
-#include "src/log.h"
-#include "src/mem.h"
+#include <sodium.h>
 
-#define DUMMY "$argon2id$v=19$m=262144,t=3,p=1$Ark5SdaPOY6+L9i2fDsvjw$wI/uFb9ReSF9rfX6x5wHsaXTsAYRAJPpz1LjpqBR3tI"
+#include "listxt.h"
+#include "log.h"
 
-char *flag_f = "/etc/passlist/default";
+char *file = "/etc/passlist/default";
+char *arg0;
 
 void
 usage(void)
 {
-	log_usage(arg_0, " [-v] [-f passfile] prog [arg...]");
+	fprintf(stdout, "usage: %s [-v] [-f passfile] [-s sleep] prog [arg...]", arg0);
+	exit(1);
 }
 
 int
 main(int argc, char **argv)
 {
-	struct stralloc sa = STRALLOC_INIT;
-	struct genalloc ga = GENALLOC_INIT;
-	struct stralloc line = STRALLOC_INIT;
-	char c, *s, *user, *pass, *hash, *path;
-	char b3[512];
-	size_t n, i;
-
-	log_init(3);
+	char c, *s, *e, *user, *pass, *date, buf[2048];
+	char *list[3], *hash, *path;
+	FILE *fp;
+	int sec;
 
 	optind = 0;
 	arg0 = *argv;
-	while ((c = getopt(argc, argv, "vf:")) != -1) {
+	while ((c = getopt(argc, argv, "vf:s:")) > -1) {
 		switch (c) {
 		case 'v':
-			buf_puts(buf_1, VERSION);
-			buf_flush(buf_1);
-			break;
+			fprintf(stdout, "%s\n", VERSION);
+			exit(0);
 		case 'f':
-			flag_f = optarg;
+			file = optarg;
 			break;
+		case 's':
+			sec = atoi(optarg);
+			if (sec <= 0) {
+				error("invalid number");
+				usage();
+			}
 		case '?':
 			usage();
 		}
 	}
 
-	if (!*argv)
+	if (*argv)
 		usage();
 
-	errno = 0;
-	while (buf_getc(buf_3, &c) && stralloc_catc(&sa, c))
-		continue;
-	if (errno)
-		log_fatal(111, "read fd 3");
+	/* read the file descriptor 3 into a memory buffer <buf> */
+	assert(fp = fdopen(3, "r"));
+	e = buf;
+	while (e < buf + sizeof(buf) && (c = fgetc(fp)) != EOF)
+		*e++ = c;
+	if (ferror(fp) || e == buf + sizeof(buf))
+		fatal(111, "read fd 3");
 
-	s = sa.s;
-	n = sa.n;
-
+	/* extract the informations from that memory buffer */
+	s = buf;
 	user = s;
-	if ((i = mem_chr(s, n, '\0')) == n)
-		log_fatal(2, "no username");
-	s += i + 1;
-	n -= i + 1;
+	s = memchr(s, '\0', e-s);
+	if (s == NULL)
+		fatal(100, "no username");
+	s++;
 	pass = s;
-	if ((i = mem_chr(s, n, '\0')) == n)
-		log_fatal(2, "no passphrase");
-	s += i + 1;
-	n -= i + 1;
-	if ((i = mem_chr(s, n, '\0')) == n)
-		log_fatal(2, "no timestamp");
+	s = memchr(s, '\0', e-s);
+	if (s == NULL)
+		fatal(100, "no passphrase");
+	s++;
+	date = s;
+	s = memchr(s, '\0', e-s);
+	if (s == NULL)
+		fatal(100, "no timestamp");
 
-	if (!listxt_get(flag_f, &line, &ga, 0, user))
-		log_fatal(111, "read ", flag_f);
-	if (genalloc_len(char *, &ga) < 3) {
-		i = crypto_pwhash_str_verify(DUMMY, "", 0);
-		log_fatal(1, "invalid user");
+	(void)date;
+
+	/* search the pass file for a matching entry */
+	switch (listxt_get(file, list, 3, 0, user)) {
+	case -1:
+		fatal(111, "read ", file);
+	case 0:
+		fatal(1, "unknown user");
 	}
 
-	hash = genalloc_s(char *, &ga)[1];
+	hash = list[1];
+	if (crypto_pwhash_str_verify(hash, pass, strlen(pass)) == -1) {
+		sleep(sec);
+		fatal(1, "invalid pass");
+	}
 
-	if (crypto_pwhash_str_verify(hash, pass, str_len(pass)) != 0)
-		log_fatal(1, "invalid pass");
-
-	path = genalloc_s(char *, &ga)[2];
+	path = list[2];
 	if (chdir(path) == -1)
-		log_fatal(111, "chdir", path);
+		fatal(111, "chdir", path);
+
+	free(list[0]);
 
 	execvp(*argv, argv);
-	log_fatal(111, "exec", *argv);
+	fatal(111, "exec", *argv);
 
 	return 0;
 }

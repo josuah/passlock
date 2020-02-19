@@ -1,39 +1,37 @@
-#include "src/arg.h"
-#include "src/buffer.h"
-#include "src/genalloc.h"
-#include "src/listxt.h"
-#include "src/log.h"
-#include "src/open.h"
-#include "src/stralloc.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-char *flag_f = "/etc/passlist/default";
+#include "listxt.h"
+#include "log.h"
+
+char *file = "/etc/passlist/default";
+char *arg0 = NULL;
 
 void
 usage(void)
 {
-	log_usage(arg_0, " [-v] [-f passfile]");
+	fprintf(stderr, "usage: %s [-v [-f passfile]\n", arg0);
+	exit(100);
 }
 
 int
 main(int argc, char **argv)
 {
-	struct buffer b = BUFFER_INIT(read, 0, bs, sizeof bs);
-	struct stralloc sa = STRALLOC_INIT;
-	struct genalloc ga = GENALLOC_INIT;
-	char bs[1024];
-
-	log_init(3);
+	FILE *fp;
+	char *list[3];
+	size_t sz;
+	int c;
 
 	optind = 0;
 	arg0 = *argv;
 	while ((c = getopt(argc, argv, "vf:")) != -1) {
 		switch (c) {
 		case 'v':
-			buffer_puts(buffer_1, VERSION);
-			buffer_flush(buffer_1);
-			break;
+			fprintf(stdout, "%s\n", VERSION);
+			exit(0);
 		case 'f':
-			flag_f = optarg;
+			file = optarg;
 			break;
 		case '?':
 			usage();
@@ -43,20 +41,15 @@ main(int argc, char **argv)
 	if (*argv)
 		usage();
 
-	if ((b.fd = open(flag_f, O_RDONLY)) == -1)
-		log_fatal(111, "open ",flag_f);
+	fp = fopen(file, "r");
+	if (fp == NULL)
+		fatal(111, "opening ",file);
 
-	buffer_puts(buffer_1, "user                      path\n");
-	while (listxt_getline(&b, &sa, &ga)) {
-		buffer_puts(buffer_1, " ");
-		buffer_puts(buffer_1, genalloc_s(char *, &ga)[0]);
-		buffer_pad(buffer_1, genalloc_s(char *, &ga)[0], ' ', 95);
-		buffer_puts(buffer_1, " ");
-		buffer_puts(buffer_1, genalloc_s(char *, &ga)[2]);
-		buffer_puts(buffer_1, "\n");
+	sz = 0;
+	while (listxt_getline(list, &sz, 2, fp) > 0) {
+		fprintf(stdout, " %-22s %s\n", list[0], list[2]);
 	}
-
-	if (!buffer_flush(buffer_1)) log_fatal(111, "write");
+	free(list[0]);
 
 	return 0;
 }

@@ -1,5 +1,6 @@
 #include "listxt.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -8,98 +9,97 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "buf.h"
-#include "fmtnum.h"
+#include "tool.h"
 
-void
-listxt_free_list(struct listxt **list)
-{
-	for (; *list; list++)
-		listxt_free(*list);
-	free(list);
-}
+/*
+ * Library for handling a simple plaintext column-separated field
+ * name database with a variable number of fields.
+ *
+ * There is no way for a file to contain invalid input.
+ */
 
-struct listxt **
-listxt_file(char *path, char *s, size_t min, size_t max)
+/*
+ * Find from <path> the first entry <*list> whose field number <pos>
+ * is <value> and store it to <*list>.  If no value is found, list[0]
+ * is set to NULL.
+ *
+ */
+int
+listxt_get(char *path, char **list, size_t n, size_t pos, char *value)
 {
 	FILE *fp;
-	struct listxt **list, *lst;
-	void *o;
-	size_t len, n;
+	size_t sz;
 
-	list = NULL;
+	assert(pos < n);
 
-	fp = fopen(path, "r")
-	if (!fp)
-		return 0;
+	if ((fp = fopen(path, "r")) == NULL)
+		return -1;
 
-	for (n = 0; (len = listxt_getline(fp, &lst)); n++) {
-		if (len > max || len < min) {
-			errno = EINVAL;
+	*list = NULL;
+	while (listxt_getline(list, &sz, n, fp) > -1) {
+		/* <list[pos]> will not be NULL as we checked just above */
+		if (list[pos] && strcmp(list[pos], value) == 0) {
+			fclose(fp);
 			return 0;
 		}
-		o = realloc(list, n * sizeof *lst);
-		if (!o) {
-			list[n] = 0;
-			listxt_free_list(list);
-			listxt_free(lst);
-			return 0;
-		}
-		list = o;
-		list[n - 1] = lst,
-		list[n] = 0;
 	}
-	close(file.fd);
-	return list;
-}
-
-struct listxt **
-listxt_add(struct listxt **link, char *field)
-{
-	*link = calloc(sizeof **link, 1);
-	if (!*link)
-		return 0;
-	(*link)->field = field;
-	return &(*link)->next;
-}
-
-void
-listxt_free(struct listxt *lst)
-{
-	struct listxt *next;
-
-	free(lst->field);
-	for (next = lst->next; lst; lst = next, next = lst->next)
-		free(lst);
-}
-
-size_t
-listxt_getline(FILE *fp, struct listxt **link)
-{
-	struct listxt **first;
-	char *field, *line;
-	size_t n;
-
-	errno = 0;
-
-	*first = NULL;
-	first = link;
-	n = 0;
-	line = NULL;
-	if (getline(&line, &n, fp) == -1)
-		goto error;
-	for (n = 0; (field = strsep(&line, ":")); n++) {
-		lst = listxt_add(lst, field);
+	if (ferror(fp)) {
+		fclose(fp);
+		return -1;
 	}
-	return n;
-error:
-	free(line);
-	listxt_free(*first);
+	free(list[0]);
+	list[0] = NULL;
+	fclose(fp);
 	return 0;
 }
 
+/*
+ * Wrapper over getline() that takes the same arguments, but "list"
+ * is also a pointer to a buffer of size <n> to be filled with fields
+ * splitted with strfield into list[:], with list[0] containing a pointer
+ * to the buffer.
+ *
+ * The first field is always set, the others can be set to the token
+ * or NULL.
+ */
 int
-listxt_valid(char *s)
+listxt_getline(char **list, size_t *sz, size_t n, FILE *fp)
+{
+	char *line;
+	ssize_t r;
+
+	/* need to return the pointer to the buffer in list[0] */
+	assert(n > 0);
+
+	/* get a line from the file */
+	line = *list;
+	r = getline(&line, sz, fp);
+	if (r <= 0)
+		return -1;
+
+	/* sanitize the entry*/
+	if (memchr(line, '\0', r) == NULL) {
+		errno = EBADMSG;
+		return -1;
+	}
+	if (line[r - 1] == '\n')
+		line[--r] = '\0';
+
+	/* split <n> fields */
+	while (n-- > 0)
+		*list++ = strfield(&line, ":");
+
+	/* make sure that the last field stops at the next delimiter */
+	strfield(&line, ":");
+
+	return (size_t)r;
+}
+
+/*
+ * Return 1 if the name <s> is a valid field name.
+ */
+int
+listxt_isvalid(char *s)
 {
 	for (;;) {
 		switch (*s++) {
@@ -111,11 +111,17 @@ listxt_valid(char *s)
 	}
 }
 
+/*
+ * Append a listxt-formatted row of size <sz> to a file.
+ * <sz> is the string size of the buffer, not the number of elements.
+ *
+ * Null bytes delimiters are converted back to 
+ */
 int
-listxt_put(FILE *fp, struct listxt *lst)
+listxt_fput(FILE *fp, char **list, size_t sz)
 {
-	for (; lst; lst = lst->next) {
-		if (fprintf(fp, lst->next ? ":%s" : "%s", lst->field)) < 0)
+	for (; n > 0; list++, n--) {
+		if (fprintf(fp, n > 1 ? "%s:" : "%s", *list) < 0)
 			return 0;
 	}
 	if (fprintf(fp, "\n") < 0)
@@ -123,13 +129,14 @@ listxt_put(FILE *fp, struct listxt *lst)
 	return 0;
 }
 
+/*
+ * Temporary path for atomically replacing the file with a new one.
+ */
 int
-listxt_tmp(struct buf *buf, char const *path)
+listxt_tmppath(char *tmp, size_t n, char const *path)
 {
-	char num[30];
+	size_t l;
 
-	if (!buf_puts(buf, path, ".", fmtnum(num, getpid())))
-		return 0;
-
-	return 1;
+	l = snprintf(tmp, n, "%s.%ld", (long)getpid())
+	return (l >= n) ? 0 : -1;
 }
