@@ -19,80 +19,77 @@
  */
 
 /*
- * Find from <path> the first entry <*list> whose field number <pos>
- * is <value> and store it to <*list>.  If no value is found, list[0]
- * is set to NULL.
- *
- */
-int
-listxt_get(char *path, char **list, size_t n, size_t pos, char *value)
-{
-	FILE *fp;
-	size_t sz;
-
-	assert(pos < n);
-
-	if ((fp = fopen(path, "r")) == NULL)
-		return -1;
-
-	*list = NULL;
-	while (listxt_getline(list, &sz, n, fp) > -1) {
-		/* <list[pos]> will not be NULL as we checked just above */
-		if (list[pos] && strcmp(list[pos], value) == 0) {
-			fclose(fp);
-			return 0;
-		}
-	}
-	if (ferror(fp)) {
-		fclose(fp);
-		return -1;
-	}
-	free(list[0]);
-	list[0] = NULL;
-	fclose(fp);
-	return 0;
-}
-
-/*
- * Wrapper over getline() that takes the same arguments, but "list"
- * is also a pointer to a buffer of size <n> to be filled with fields
- * splitted with strfield into list[:], with list[0] containing a pointer
- * to the buffer.
+ * Read and parse one line from <fp> into list, an array of <n>
+ * char pointers, filled with the fields from line.
  *
  * The first field is always set, the others can be set to the token
  * or NULL.
+ *
+ * After the last field is all the unparsed data if anything remains.
+ * To know whether there is anything left, <*sz> can be used.
  */
-int
-listxt_getline(char **list, size_t *sz, size_t n, FILE *fp)
+ssize_t
+listxt_getline(char **line, size_t *sz, FILE *fp)
 {
-	char *line;
 	ssize_t r;
 
-	/* need to return the pointer to the buffer in list[0] */
-	assert(n > 0);
-
-	/* get a line from the file */
-	line = *list;
-	r = getline(&line, sz, fp);
-	if (r <= 0)
+	r = getline(line, sz, fp);
+	if (r == -1)
 		return -1;
 
-	/* sanitize the entry*/
+	r -= strchomp(*line);
 	if (memchr(line, '\0', r) == NULL) {
 		errno = EBADMSG;
 		return -1;
 	}
-	if (line[r - 1] == '\n')
-		line[--r] = '\0';
+	return r;
+}
 
-	/* split <n> fields */
-	while (n-- > 0)
-		*list++ = strfield(&line, ":");
+int
+listxt_cmp(char *line, size_t field, char *value)
+{
+	size_t n;
 
-	/* make sure that the last field stops at the next delimiter */
-	strfield(&line, ":");
+	do {
+		if (field-- > 0)
+			continue;
 
-	return (size_t)r;
+		n = strlen(value);
+		if (strncmp(line, value, n) != 0)
+			return -1;
+		if (line[n] != ':' && line[n] != '\0')
+			return -1;
+		return 0;
+	} while ((line = strchr(line, ':')));
+
+	return -1;
+}
+
+/*
+ * Read the file at <path> and look for the first field at position
+ * <field> that matches <value>.  Return a pointer to such a field.
+ */
+char *
+listxt_get(char *path, size_t field, char *value)
+{
+	FILE *fp;
+	char *line;
+	size_t sz;
+
+	if ((fp = fopen(path, "r")) == NULL)
+		return NULL;
+
+	sz = 0;
+	line = NULL;
+	while (listxt_getline(&line, &sz, fp) > -1) {
+		if (listxt_cmp(line, field, value) == 0) {
+			fclose(fp);
+			return line;
+		}
+	}
+	free(line);
+	fclose(fp);
+	return NULL
 }
 
 /*
@@ -118,15 +115,10 @@ listxt_isvalid(char *s)
  * Null bytes delimiters are converted back to 
  */
 int
-listxt_fput(FILE *fp, char **list, size_t sz)
+listxt_fput(FILE *fp, char *buf, size_t sz)
 {
-	for (; n > 0; list++, n--) {
-		if (fprintf(fp, n > 1 ? "%s:" : "%s", *list) < 0)
-			return 0;
-	}
-	if (fprintf(fp, "\n") < 0)
-		return -1;
-	return 0;
+	memtr(buf, sz, '\0', ':');
+	return fprintf(stdout, "%s\n", buf) > 0;
 }
 
 /*
@@ -137,6 +129,6 @@ listxt_tmppath(char *tmp, size_t n, char const *path)
 {
 	size_t l;
 
-	l = snprintf(tmp, n, "%s.%ld", (long)getpid())
+	l = snprintf(tmp, n, "%s.%ld", path, (long)getpid());
 	return (l >= n) ? 0 : -1;
 }

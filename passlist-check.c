@@ -78,12 +78,11 @@ main(int argc, char **argv)
 	(void)date;
 
 	/* search the pass file for a matching entry */
-	switch (listxt_get(file, list, 3, 0, user)) {
-	case -1:
+	user = listxt_get(file, 0, user);
+	if (errno)
 		fatal(111, "read ", file);
-	case 0:
+	if (user == NULL)
 		fatal(1, "unknown user");
-	}
 
 	hash = list[1];
 	if (crypto_pwhash_str_verify(hash, pass, strlen(pass)) == -1) {

@@ -22,7 +22,7 @@ int
 main(int argc, char **argv)
 {
 	FILE *frd, *fwr;
-	char tmp[2048], *user, *list[3];
+	char tmp[2048], *user, *line;
 	size_t sz;
 	ssize_t r;
 	int c;
@@ -50,9 +50,11 @@ main(int argc, char **argv)
 
 	if (!listxt_isvalid(user))
 		fatal(111, "invalid username");
-	if (listxt_get(file, list, 3, 0, user) == -1)
+
+	line = listxt_get(file, 0, user);
+	if (errno)
 		fatal(111, "opening %s", file);
-	if (list[0] == NULL)
+	if (line == NULL)
 		fatal(100, "user %s not in %s", user, file);
 
 	assert(listxt_tmppath(tmp, sizeof tmp, file) > -1);
@@ -64,16 +66,15 @@ main(int argc, char **argv)
 		fatal(111, "opening %s", tmp);
 
 	sz = 0;
-	while ((r = listxt_getline(list, &sz, 3, frd)) > -1) {
-		if (strcmp(list[0], user) == 0)
+	while ((r = listxt_getline(&line, &sz, frd)) > -1) {
+		if (listxt_cmp(line, 0, user) == 0)
 			continue;
-		if (listxt_fput(fwr, list, r) == -1)
+		if (fprintf(fwr, "%s\n", line) < 0)
 			fatal(111, "write");
 	}
+	fflush(fwr);
 	if (errno)
-		fatal(111, "reding a line from %s", tmp);
-	if (fflush(fwr) == EOF)
-		fatal(111, "write");
+		fatal(111, "reding from %s and writing to %s", file, tmp);
 
 	if (rename(tmp, file) == -1)
 		fatal(111, "%s -> %s", tmp, file);

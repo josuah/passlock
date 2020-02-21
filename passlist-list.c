@@ -46,7 +46,7 @@ main(int argc, char **argv)
 		fatal(111, "opening ",file);
 
 	sz = 0;
-	while (listxt_getline(list, &sz, 2, fp) > 0) {
+	while (listxt_getline(&line, &sz, fp) > 0) {
 		fprintf(stdout, " %-22s %s\n", list[0], list[2]);
 	}
 	free(list[0]);

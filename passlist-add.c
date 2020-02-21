@@ -1,9 +1,12 @@
-#include <stdio.h>  /* for rename(2) */
+#include <assert.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <sodium.h>
 
+#include "tool.h"
 #include "listxt.h"
 #include "log.h"
 
@@ -21,10 +24,9 @@ int
 main(int argc, char **argv)
 {
 	char *user, *line, *pass, tmp[2048], hash[crypto_pwhash_STRBYTES];
-	FILE *frd, *fwr;
-	struct listxt *lst;
-	ssize_t n;
-	int c;
+	FILE *fp;
+	size_t n;
+	int frd, fwr, c;
 
 	optind = 0;
 	arg0 = *argv;
@@ -42,7 +44,7 @@ main(int argc, char **argv)
 	}
 
 	user = *argv++;
-	if (user == NULL || !listxt_valid(user)) {
+	if (user == NULL || !listxt_isvalid(user)) {
 		error("invalid username");
 		usage(); 
 	}
@@ -58,28 +60,26 @@ main(int argc, char **argv)
 		usage();
 	}
 
-	n = listxt_get(file, &line, 0, user);
-	if (n == -1)
+	line = listxt_get(file, 0, user);
+	if (errno)
 		fatal(111, "getting value from %s", file);
-	if (n > 0)
+	if (line == NULL)
 		fatal(1, "user %s exist on %s", user, file);
 
-	frd = fopen(file, "r");
-	if (frd == NULL)
-		fatal(111, "opening %s", file);
-
-	if (listxt_tmp(tmp, sizeof(tmp), file) == -1)
+	if (listxt_tmppath(tmp, sizeof(tmp), file) == -1)
 		fatal(111, "alloc");
 
-	fwr = fopen(file, "w");
-	if (fwr == NULL)
+	frd = open(file, O_WRONLY);
+	if (frd == -1)
+		fatal(111, "opening %s", file);
+	fwr = open(file, O_RDONLY);
+	if (fwr == -1)
 		fatal(111, "opening %s", tmp);
-
-	fdump(frd, fwr);
-	if (ferror(frd) || ferror(fwr))
+	if (fdump(frd, fwr) == -1)
 		fatal(111, "copying from %s to %s", file, tmp);
+	close(frd);
 
-	fclose(frd);
+	assert(fp = fdopen(fwr, "w"));
 
 	pass = NULL;
 	if (getline(&pass, &n, stdin) == -1)
@@ -93,9 +93,8 @@ main(int argc, char **argv)
 
 	free(pass);
 
-	fprintf(fwr, "%s:%s:%s\n", user, hash, tmp);
-	fflush(fwr);
-	if (ferror(fwr))
+	fprintf(fp, "%s:%s:%s\n", user, hash, tmp);
+	if (ferror(fp) || fclose(fp) == EOF)
 		fatal(111, "writing to file");
 
 	if (rename(tmp, file) == -1)
