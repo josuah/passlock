@@ -1,3 +1,5 @@
+#include "tool.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -5,8 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "def.h"
+#include <unistd.h>
 
 /*
  * An strsep() that does not skip consecutive occurence of the delimiter.
@@ -51,17 +52,7 @@ void
 strsplit(char **list, size_t n, char *s, char *sep)
 {
 	while (n--)
-		*list++ = strfield(&s, *sep);
-}
-
-void
-memtr(char *buf, size_t sz, char c1, char c2)
-{
-	char *cp;
-
-	cp = buf;
-	while ((cp = memchr(cp, sz + buf - cp, c1)))
-		*cp = c2;
+		*list++ = strfield(&s, sep);
 }
 
 int
@@ -73,5 +64,5 @@ fdump(int frd, int fwr)
 	while ((r = read(frd, buf, sizeof buf)) > 0)
 		if (write(fwr, buf, r) < r)
 			return -1;
-	return r > 0 ? 0 : -1;
+	return r;
 }

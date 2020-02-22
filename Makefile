@@ -1,8 +1,8 @@
 include config.mk
 
 bin = passlist-add passlist-check passlist-del passlist-list
-inc = src/base64.h src/listxt.h src/log.h
-src = src/base64.c src/listxt.c src/log.c
+inc = src/base64.h src/listxt.h src/log.h src/tool.h
+src = src/base64.c src/listxt.c src/log.c src/tool.c
 obj = ${src:.c=.o}
 
 all: ${bin}

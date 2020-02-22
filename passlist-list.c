@@ -1,6 +1,8 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "listxt.h"
 #include "log.h"
@@ -11,7 +13,7 @@ char *arg0 = NULL;
 void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-v [-f passfile]\n", arg0);
+	fprintf(stderr, "usage: %s [-v] [-f passfile]\n", arg0);
 	exit(100);
 }
 
@@ -19,8 +21,9 @@ int
 main(int argc, char **argv)
 {
 	FILE *fp;
-	char *list[3];
+	char *line, *user, *path;
 	size_t sz;
+	ssize_t un, pn;
 	int c;
 
 	optind = 0;
@@ -37,19 +40,29 @@ main(int argc, char **argv)
 			usage();
 		}
 	}
+	argc -= optind;
+	argv += optind;
 
 	if (*argv)
 		usage();
 
 	fp = fopen(file, "r");
-	if (fp == NULL)
-		fatal(111, "opening ",file);
+	if (fp == NULL) {
+		warn("open, open!");
+		fatal(111, "opening %s", file);
+	}
 
 	sz = 0;
-	while (listxt_getline(&line, &sz, fp) > 0) {
-		fprintf(stdout, " %-22s %s\n", list[0], list[2]);
+	line = NULL;
+	while (listxt_getline(&line, &sz, fp) > -1) {
+		assert((un = listxt_field(line, 0, &user)) <= INT_MAX);
+		assert((pn = listxt_field(line, 2, &path)) <= INT_MAX);
+		assert(un > -1);
+		listxt_fmt(&path, &pn);
+		fprintf(stdout, " %-22.*s %.*s\n", (int)un, user, (int)pn, path);
 	}
-	free(list[0]);
-
+	if (ferror(fp))
+		fatal(111, "getting a line from %s", file);
+	free(line);
 	return 0;
 }

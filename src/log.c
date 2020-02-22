@@ -31,7 +31,7 @@ vlogf(int exitcode, int level, char const *flag, char const *fmt, va_list va)
 		log_level = log_level > 0 ? log_level : LOG_DEFAULT;
 	}
 
-	if (log_level > level)
+	if (log_level < level)
 		goto end;
 
 	fprintf(stderr, "%s: ", flag);

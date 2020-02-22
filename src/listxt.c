@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include "tool.h"
+#include "log.h"
 
 /*
  * Library for handling a simple plaintext column-separated field
@@ -45,24 +46,34 @@ listxt_getline(char **line, size_t *sz, FILE *fp)
 	return r;
 }
 
-int
-listxt_cmp(char *line, size_t field, char *value)
+ssize_t
+listxt_field(char *line, size_t n, char **field)
 {
-	size_t n;
+	for (; n > 0 && line; n--) {
+		line = strchr(line, ':');
+		line += (line != NULL);
+	}
+	if (line == NULL)
+		return -1;
+	*field = line;
+	line = strchr(*field, ':');
+	return (line == NULL) ? strlen(*field) : line - *field;
+}
 
-	do {
-		if (field-- > 0)
-			continue;
+int
+listxt_cmp(char *line, size_t pos, char *value)
+{
+	ssize_t len;
+	char *field;
 
-		n = strlen(value);
-		if (strncmp(line, value, n) != 0)
-			return -1;
-		if (line[n] != ':' && line[n] != '\0')
-			return -1;
-		return 0;
-	} while ((line = strchr(line, ':')));
-
-	return -1;
+	len = listxt_field(line, pos, &field);
+	if (len == -1)
+		return -1;
+	if (strncmp(field, value, len) != 0)
+		return -1;
+	if ((line[len] != ':' && line[len] != '\0') || value[len] != '\0')
+		return -1;
+	return 0;
 }
 
 /*
@@ -89,7 +100,7 @@ listxt_get(char *path, size_t field, char *value)
 	}
 	free(line);
 	fclose(fp);
-	return NULL
+	return NULL;
 }
 
 /*
@@ -108,17 +119,13 @@ listxt_isvalid(char *s)
 	}
 }
 
-/*
- * Append a listxt-formatted row of size <sz> to a file.
- * <sz> is the string size of the buffer, not the number of elements.
- *
- * Null bytes delimiters are converted back to 
- */
-int
-listxt_fput(FILE *fp, char *buf, size_t sz)
+void
+listxt_fmt(char **field, ssize_t *len)
 {
-	memtr(buf, sz, '\0', ':');
-	return fprintf(stdout, "%s\n", buf) > 0;
+	if (*len == -1) {
+		*field = ":";
+		*len = 1;
+	}
 }
 
 /*
@@ -130,5 +137,5 @@ listxt_tmppath(char *tmp, size_t n, char const *path)
 	size_t l;
 
 	l = snprintf(tmp, n, "%s.%ld", path, (long)getpid());
-	return (l >= n) ? 0 : -1;
+	return (l >= n) ? -1 : 0;
 }

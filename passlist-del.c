@@ -41,6 +41,8 @@ main(int argc, char **argv)
 			usage();
 		}
 	}
+	argc -= optind;
+	argv += optind;
 
 	user = *argv++;
 	if (user == NULL)

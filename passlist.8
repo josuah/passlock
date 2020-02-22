@@ -71,6 +71,10 @@ The default passfile is
 $ authd passlist-check -f /etc/passlist/servicename protected-daemon -args
 .Ed
 .
+.Bd -literal
+$ printf '%s\\0' "$user" "$pass" "$(date +%s)" | passlist-check echo success 3>&0
+.Ed
+.
 .
 .Sh SEE ALSO
 .
