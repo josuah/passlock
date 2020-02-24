@@ -1,5 +1,5 @@
 #!/bin/sh
-proto='
+awk='
 BEGIN {
 	tab = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"
 	print "/**/"
@@ -66,7 +66,8 @@ args && /\)$/ {
 '
 
 for file in src/*.c; do file=${file%.c}
+	grep -Fq '/**/' "$file.h" 2>/dev/null || continue
 	header=$(awk '$0 == "/**/" { exit(0) } 1' "$file.h"
-		awk "$proto" "$file.c")
+		awk "$awk" "$file.c")
 	printf '%s\n' "$header" >"$file.h"
 done

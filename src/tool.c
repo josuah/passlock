@@ -15,7 +15,7 @@
 char *
 strfield(char **strp, const char *sep)
 {
-	char	*s, *prev;
+	char *s, *prev;
 
 	if (*strp == NULL)
 		return NULL;

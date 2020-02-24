@@ -50,7 +50,7 @@ main(int argc, char **argv)
 	user = *argv++;
 	if (user == NULL || !listxt_isvalid(user)) {
 		error("invalid username");
-		usage(); 
+		usage();
 	}
 
 	path = *argv++;
