@@ -16,6 +16,9 @@ ${bin}: ${bin:=.o} ${obj} ${inc}
 clean:
 	rm -f *.a *.o */*.o */*/*.o ${bin} cmd/test
 
+release:
+	git tag -f "${VERSION}"
+
 install: ${bin}
 	mkdir -p ${PREFIX}/bin
 	cp ${bin} ${PREFIX}/bin
