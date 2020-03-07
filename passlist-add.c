@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -70,7 +69,8 @@ main(int argc, char **argv)
 		die(1, "user %s exist on %s", user, file);
 
 	debug("generating temporary file name", file);
-	assert(listxt_tmppath(tmp, sizeof(tmp), file) > -1);
+	if ((listxt_tmppath(tmp, sizeof(tmp), file) > -1))
+		die(100, "building temporary pathname");
 
 	debug("opening '%s' for reading", file);
 	frd = open(file, O_RDONLY);
@@ -78,8 +78,7 @@ main(int argc, char **argv)
 		die(111, "opening %s", file);
 
 	debug("opening '%s' for writing", tmp);
-	fwr = open(tmp, O_WRONLY|O_CREAT);
-	if (fwr == -1)
+	if ((fwr = open(tmp, O_WRONLY|O_CREAT)) == -1)
 		die(111, "opening %s", tmp);
 
 	debug("dumping '%s' to '%s'", file, tmp);
@@ -99,14 +98,17 @@ main(int argc, char **argv)
 	strchomp(pass);
 
 	info("hashing password");
-	assert(crypto_pwhash_str(hash, pass, strlen(pass),
+	if (crypto_pwhash_str(hash, pass, strlen(pass),
 	  crypto_pwhash_OPSLIMIT_MODERATE,
-	  crypto_pwhash_MEMLIMIT_MODERATE) == 0);
+	  crypto_pwhash_MEMLIMIT_MODERATE) == -1)
+		die(111, "hashing password");
 
 	free(pass);
 
 	debug("adding an entry for the new user");
-	assert(fp = fdopen(fwr, "w"));
+	if ((fp = fdopen(fwr, "w")) == NULL)
+		die(111, "opening '%s' with buffering", tmp);
+
 	fprintf(fp, "%s:%s:%s\n", user, hash, path);
 	if (ferror(fp) || fclose(fp) == EOF)
 		die(111, "writing to file");

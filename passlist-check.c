@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <errno.h>
 #include <string.h>
 #include <time.h>
@@ -62,48 +61,49 @@ main(int argc, char **argv)
 
 	debug("read the file descriptor 3 for user and password information");
 
-	assert(fp = fdopen(3, "r"));
+	if ((fp = fdopen(3, "r")) == NULL)
+		die(111, "opening file descriptor 3 with buffering");
+
 	e = buf;
 	while (e < buf + sizeof(buf) && (c = fgetc(fp)) != EOF)
 		*e++ = c;
 	if (ferror(fp) || e == buf + sizeof(buf))
 		die(111, "read fd 3");
 	s = buf;
+
 	user = s;
-	s = memchr(s, '\0', e-s);
-	if (s == NULL)
+	if ((s = memchr(s, '\0', e-s)) == NULL)
 		die(100, "no username");
+
 	s++;
+
 	pass = s;
-	s = memchr(s, '\0', e-s);
-	if (s == NULL)
+	if ((s = memchr(s, '\0', e-s)) == NULL)
 		die(100, "no passphrase");
+
 	s++;
+
 	date = s;
-	s = memchr(s, '\0', e-s);
-	if (s == NULL)
+	if ((s = memchr(s, '\0', e-s)) == NULL)
 		die(100, "no timestamp");
 
 	(void)date;
 
 	debug("search the pass file for a matching entry");
 
-	line = listxt_get(file, 0, user);
-	if (errno)
-		die(111, "read ", file);
-	if (line == NULL) {
+	if ((line = listxt_get(file, 0, user)) == NULL) {
+		if (errno)
+			die(111, "read ", file);
 		warn("unknown user");
 		goto dummy;
 	}
 
-	hn = listxt_field(line, 1, &hash);
-	if (hn < 0) {
+	if ((hn = listxt_field(line, 1, &hash)) == -1) {
 		error("no hash field for this entry");
 		goto dummy;
 	}
 
-	pn = listxt_field(line, 2, &path);
-	if (pn == -1) {
+	if ((pn = listxt_field(line, 2, &path)) == -1) {
 		error("no path field for this entry");
 		goto dummy;
 	}
@@ -123,7 +123,6 @@ main(int argc, char **argv)
 
 	execvp(*argv, argv);
 	die(111, "exec", *argv);
-
 dummy:
 	debug("hash a dummy password");
 	(void)crypto_pwhash_str_verify(dummy, "", 1);

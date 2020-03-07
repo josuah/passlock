@@ -57,7 +57,8 @@ main(int argc, char **argv)
 	while (listxt_getline(&line, &sz, fp) > -1) {
 		assert((un = listxt_field(line, 0, &user)) <= INT_MAX);
 		assert((pn = listxt_field(line, 2, &path)) <= INT_MAX);
-		assert(un > -1);
+		if (un == -1)
+			die(111, "getting username");
 		listxt_fmt(&path, &pn);
 		fprintf(stdout, " %-22.*s %.*s\n", (int)un, user, (int)pn, path);
 	}

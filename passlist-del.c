@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,8 +43,7 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	user = *argv++;
-	if (user == NULL)
+	if ((user = *argv++) == NULL)
 		usage();
 	if (*argv)
 		usage();
@@ -53,18 +51,17 @@ main(int argc, char **argv)
 	if (!listxt_isvalid(user))
 		die(111, "invalid username");
 
-	line = listxt_get(file, 0, user);
-	if (errno)
-		die(111, "opening %s", file);
-	if (line == NULL)
+	if ((line = listxt_get(file, 0, user)) == NULL) {
+		if (errno)
+			die(111, "opening %s", file);
 		die(100, "user %s not in %s", user, file);
+	}
 
-	assert(listxt_tmppath(tmp, sizeof tmp, file) > -1);
-	frd = fopen(file, "r");
-	if (frd == NULL)
+	if (listxt_tmppath(tmp, sizeof tmp, file) == -1)
+		die(111, "building temporary path");
+	if ((frd = fopen(file, "r")) == NULL)
 		die(111, "opening ",file);
-	fwr = fopen(tmp, "w");
-	if (fwr == NULL)
+	if ((fwr = fopen(tmp, "w")) == NULL)
 		die(111, "opening %s", tmp);
 
 	sz = 0;
