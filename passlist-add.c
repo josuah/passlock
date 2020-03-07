@@ -65,9 +65,9 @@ main(int argc, char **argv)
 	debug("checking if user is in '%s'", file);
 	line = listxt_get(file, 0, user);
 	if (errno)
-		fatal(111, "getting value from %s", file);
+		die(111, "getting value from %s", file);
 	if (line != NULL)
-		fatal(1, "user %s exist on %s", user, file);
+		die(1, "user %s exist on %s", user, file);
 
 	debug("generating temporary file name", file);
 	assert(listxt_tmppath(tmp, sizeof(tmp), file) > -1);
@@ -75,16 +75,16 @@ main(int argc, char **argv)
 	debug("opening '%s' for reading", file);
 	frd = open(file, O_RDONLY);
 	if (frd == -1)
-		fatal(111, "opening %s", file);
+		die(111, "opening %s", file);
 
 	debug("opening '%s' for writing", tmp);
 	fwr = open(tmp, O_WRONLY|O_CREAT);
 	if (fwr == -1)
-		fatal(111, "opening %s", tmp);
+		die(111, "opening %s", tmp);
 
 	debug("dumping '%s' to '%s'", file, tmp);
 	if (fdump(frd, fwr) == -1)
-		fatal(111, "copying from %s to %s", file, tmp);
+		die(111, "copying from %s to %s", file, tmp);
 	close(frd);
 
 	debug("reading password");
@@ -95,7 +95,7 @@ main(int argc, char **argv)
 	errno = 0;
 	pass = NULL;
 	if (getline(&pass, &n, stdin) == -1)
-		fatal(111, "reading stdin");
+		die(111, "reading stdin");
 	strchomp(pass);
 
 	info("hashing password");
@@ -109,10 +109,10 @@ main(int argc, char **argv)
 	assert(fp = fdopen(fwr, "w"));
 	fprintf(fp, "%s:%s:%s\n", user, hash, path);
 	if (ferror(fp) || fclose(fp) == EOF)
-		fatal(111, "writing to file");
+		die(111, "writing to file");
 
 	if (rename(tmp, file) == -1)
-		fatal(111, "renaming from '%s' to '%s'", tmp, file);
+		die(111, "renaming from '%s' to '%s'", tmp, file);
 
 	return 0;
 }

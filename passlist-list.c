@@ -49,7 +49,7 @@ main(int argc, char **argv)
 	fp = fopen(file, "r");
 	if (fp == NULL) {
 		warn("open, open!");
-		fatal(111, "opening %s", file);
+		die(111, "opening %s", file);
 	}
 
 	sz = 0;
@@ -62,7 +62,7 @@ main(int argc, char **argv)
 		fprintf(stdout, " %-22.*s %.*s\n", (int)un, user, (int)pn, path);
 	}
 	if (ferror(fp))
-		fatal(111, "getting a line from %s", file);
+		die(111, "getting a line from %s", file);
 	free(line);
 	return 0;
 }

@@ -67,22 +67,22 @@ main(int argc, char **argv)
 	while (e < buf + sizeof(buf) && (c = fgetc(fp)) != EOF)
 		*e++ = c;
 	if (ferror(fp) || e == buf + sizeof(buf))
-		fatal(111, "read fd 3");
+		die(111, "read fd 3");
 	s = buf;
 	user = s;
 	s = memchr(s, '\0', e-s);
 	if (s == NULL)
-		fatal(100, "no username");
+		die(100, "no username");
 	s++;
 	pass = s;
 	s = memchr(s, '\0', e-s);
 	if (s == NULL)
-		fatal(100, "no passphrase");
+		die(100, "no passphrase");
 	s++;
 	date = s;
 	s = memchr(s, '\0', e-s);
 	if (s == NULL)
-		fatal(100, "no timestamp");
+		die(100, "no timestamp");
 
 	(void)date;
 
@@ -90,7 +90,7 @@ main(int argc, char **argv)
 
 	line = listxt_get(file, 0, user);
 	if (errno)
-		fatal(111, "read ", file);
+		die(111, "read ", file);
 	if (line == NULL) {
 		warn("unknown user");
 		goto dummy;
@@ -117,12 +117,12 @@ main(int argc, char **argv)
 	}
 
 	if (chdir(path) == -1)
-		fatal(111, "chdir", path);
+		die(111, "chdir", path);
 
 	free(line);
 
 	execvp(*argv, argv);
-	fatal(111, "exec", *argv);
+	die(111, "exec", *argv);
 
 dummy:
 	debug("hash a dummy password");

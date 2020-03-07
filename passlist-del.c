@@ -51,35 +51,35 @@ main(int argc, char **argv)
 		usage();
 
 	if (!listxt_isvalid(user))
-		fatal(111, "invalid username");
+		die(111, "invalid username");
 
 	line = listxt_get(file, 0, user);
 	if (errno)
-		fatal(111, "opening %s", file);
+		die(111, "opening %s", file);
 	if (line == NULL)
-		fatal(100, "user %s not in %s", user, file);
+		die(100, "user %s not in %s", user, file);
 
 	assert(listxt_tmppath(tmp, sizeof tmp, file) > -1);
 	frd = fopen(file, "r");
 	if (frd == NULL)
-		fatal(111, "opening ",file);
+		die(111, "opening ",file);
 	fwr = fopen(tmp, "w");
 	if (fwr == NULL)
-		fatal(111, "opening %s", tmp);
+		die(111, "opening %s", tmp);
 
 	sz = 0;
 	while ((r = listxt_getline(&line, &sz, frd)) > -1) {
 		if (listxt_cmp(line, 0, user) == 0)
 			continue;
 		if (fprintf(fwr, "%s\n", line) < 0)
-			fatal(111, "write");
+			die(111, "write");
 	}
 	fflush(fwr);
 	if (errno)
-		fatal(111, "reding from %s and writing to %s", file, tmp);
+		die(111, "reding from %s and writing to %s", file, tmp);
 
 	if (rename(tmp, file) == -1)
-		fatal(111, "%s -> %s", tmp, file);
+		die(111, "%s -> %s", tmp, file);
 
 	return 0;
 }
