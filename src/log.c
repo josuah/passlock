@@ -1,5 +1,6 @@
 #include "log.h"
 
+#include <assert.h>
 #include <string.h>
 
 /*
@@ -13,10 +14,10 @@
  */
 
 #include <errno.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#define LOG_DEFAULT 2  /* info */
+#define LOG_DEFAULT 3  /* info */
 
 int log_level = -1;
 
@@ -24,8 +25,9 @@ void
 vlogf(int level, char const *flag, char const *fmt, va_list va)
 {
 	char *env;
+	int e = errno;
 
-	if (log_level == -1) {
+	if (log_level <0) {
 		env = getenv("LOG");
 		log_level = (env == NULL ? 0 : atoi(env));
 		log_level = (log_level > 0 ? log_level : LOG_DEFAULT);
@@ -37,33 +39,22 @@ vlogf(int level, char const *flag, char const *fmt, va_list va)
 	fprintf(stderr, "%s: ", flag);
 	vfprintf(stderr, fmt, va);
 
-	if (errno)
-		fprintf(stderr, ": %s", strerror(errno));
-	errno = 0;
+	if (e != 0)
+		fprintf(stderr, ": %s", strerror(e));
 
 	fprintf(stderr, "\n");
 	fflush(stderr);
 }
 
 void
-die(int exitcode, char const *fmt, ...)
+die(char const *fmt, ...)
 {
 	va_list va;
 
 	va_start(va, fmt);
 	vlogf(1, "error", fmt, va);
 	va_end(va);
-	exit(exitcode);
-}
-
-void
-error(char const *fmt, ...)
-{
-	va_list va;
-
-	va_start(va, fmt);
-	vlogf(1, "error", fmt, va);
-	va_end(va);
+	exit(1);
 }
 
 void
