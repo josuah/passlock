@@ -5,133 +5,115 @@
 
 #include <sodium.h>
 
-#include "listxt.h"
 #include "log.h"
+#include "util.h"
 
-char *file = "/etc/passlist/default";
-char *arg0;
+char *arg0 = NULL;
+char **argv = NULL;
+char *flag['z'];
+
 char *dummy = "$argon2id$v=19$m=262144,t=3,p=1$4ES6M9HdwRuJmqzp4txihg$Dvxnm4JcP0uMZU0J6KF8zVuzIVlQH6miDEM1eclYScM";
 
 void
 usage(void)
 {
-	fprintf(stdout, "usage: %s [-v] [-f passfile] [-s sleep] prog...\n", arg0);
+	fprintf(stdout, "usage: %s"
+	 " [-v] -h /path/%%/home/ -p /path/%%/pass/ prog...\n", arg0);
 	exit(1);
 }
 
 int
 main(int argc, char **argv)
 {
-	char c, *s, *e, *user, *pass, *date, buf[2048];
-	char *line, *hash, *path;
-	ssize_t hn, pn;
+	char path_home[2048], path_pass[2048], buf[2048];
+	char *s, *e, *user, *pass, *date, *hash;
+	size_t sz;
+	int c, ms;
 	FILE *fp;
-	int ms;
 	struct timespec ts;
 
-	ms = 1000;
-	optind = 0;
+	flag['s'] = "1000";
+
 	arg0 = *argv;
-	while ((c = getopt(argc, argv, "vf:s:")) > -1) {
-		switch (c) {
-		case 'v':
-			fprintf(stdout, "%s\n", VERSION);
-			exit(0);
-		case 'f':
-			file = optarg;
-			break;
-		case 's':
-			ms = atoi(optarg);
-			if (ms < 2) {
-				error("invalid number");
-				usage();
-			}
-			break;
-		case '?':
+	while ((c = getopt(argc, argv, "h:p:")) > -1) {
+		if (c == '?')
 			usage();
-		}
+		flag[c] = optarg ? optarg : "1";
 	}
 	argc -= optind;
 	argv += optind;
 
-	ms += ms / 2 - randombytes_uniform(ms / 2);
-
+	if (flag['v'] != NULL)
+		fprintf(stdout, "%s\n", VERSION), exit(0);
+	if (flag['s'] != NULL)
+		if ((ms = atoi(flag['s'])) < 2)
+			warn("invalid number"), usage();
+	if (flag['h'] == NULL)
+		usage();
+	if (flag['p'] == NULL)
+		usage();
 	if (*argv == NULL)
 		usage();
 
-	debug("read the file descriptor 3 for user and password information");
+	ms += ms / 2 - randombytes_uniform(ms / 2);
 
 	if ((fp = fdopen(3, "r")) == NULL)
-		die(111, "opening file descriptor 3 with buffering");
-
+		die("setting buffering on fd3");
 	e = buf;
-	while (e < buf + sizeof(buf) && (c = fgetc(fp)) != EOF)
+	while ((c = fgetc(fp)) != EOF && e < buf + sizeof(buf))
 		*e++ = c;
 	if (ferror(fp) || e == buf + sizeof(buf))
-		die(111, "read fd 3");
-	s = buf;
+		die("reading fd3");
+	fclose(fp);
 
-	user = s;
+	user = s = buf;
 	if ((s = memchr(s, '\0', e-s)) == NULL)
-		die(100, "no username");
-
-	s++;
-
-	pass = s;
+		die("no username");
+	pass = ++s;
 	if ((s = memchr(s, '\0', e-s)) == NULL)
-		die(100, "no passphrase");
-
-	s++;
-
-	date = s;
+		die("no passphrase");
+	date = ++s;
 	if ((s = memchr(s, '\0', e-s)) == NULL)
-		die(100, "no timestamp");
-
+		die("no timestamp");
 	(void)date;
 
-	debug("search the pass file for a matching entry");
-
-	if ((line = listxt_get(file, 0, user)) == NULL) {
-		if (errno)
-			die(111, "read ", file);
-		warn("unknown user");
+	if (path_fmt(path_home, sizeof(path_home), flag['h'], user) < 0)
+		die("formatting home path out of '%s'", flag['p']);
+	if (path_fmt(path_pass, sizeof(path_pass), flag['p'], user) < 0)
+		die("formatting pass path out of '%s'", flag['p']);
+	if ((fp = fopen(path_pass, "r")) == NULL) {
+		warn("opening '%s' for reading", path_pass);
 		goto dummy;
 	}
+	if (getline(&hash, &sz, fp) == -1)
+		die("reading %s", path_pass);
+	strchomp(hash);
+	fclose(fp);
 
-	if ((hn = listxt_field(line, 1, &hash)) == -1) {
-		error("no hash field for this entry");
-		goto dummy;
-	}
-
-	if ((pn = listxt_field(line, 2, &path)) == -1) {
-		error("no path field for this entry");
-		goto dummy;
-	}
-
-	info("verifying the password");
-
-	hash = strsep(&hash, ":");
-	if (crypto_pwhash_str_verify(hash, pass, strlen(pass)) == -1) {
-		errno = 0; warn("invalid password: user=%s pass=%s hash=%s", user, pass, hash);
+	debug("checking password for '%s'", user);
+	if (crypto_pwhash_str_verify(hash, pass, strlen(pass)) < 0) {
+		errno = 0; /* not a helpful message */
+		warn("invalid password: user=%s hash=%s", user, hash);
 		goto sleep;
 	}
+	free(hash);
 
-	if (chdir(path) == -1)
-		die(111, "chdir", path);
-
-	free(line);
+	info("user could log in: '%s', executing %s", user, *argv);
+	if (chdir(path_home) < 0)
+		die("chdir", path_home);
 
 	execvp(*argv, argv);
-	die(111, "exec", *argv);
+	die("exec", *argv);
 dummy:
-	debug("hash a dummy password");
-	(void)crypto_pwhash_str_verify(dummy, "", 1);
+	debug("hash a dummy password to prevent statistical timing attacks");
+	if (crypto_pwhash_str_verify(dummy, "", 1) < 0)
+		{/* nothing */}
 	errno = 0;
 sleep:
-	debug("sleeping for %dms", ms);
+	debug("sleeping for %dms to prevent timing attacks", ms);
 	ts.tv_sec = ms / 1000;
-	ts.tv_nsec = ms % 1000 * 1000 * 1000;
-	while (nanosleep(&ts, &ts) == -1)
+	ts.tv_nsec = ms % 1000 * 1000000;
+	while (nanosleep(&ts, &ts) < 0)
 		continue;
 	return 1;
 }

@@ -1,14 +1,10 @@
 include config.mk
-
-bin = passlist-add passlist-check passlist-del passlist-list
-inc = src/listxt.h src/log.h src/tool.h
-src = src/listxt.c src/log.c src/tool.c
-obj = ${src:.c=.o}
+include content.mk
 
 all: ${bin}
 
-${bin}: ${bin:=.o} ${obj} ${inc}
-	${CC} ${LFLAGS} -o $@ $@.o ${obj} ${LIB}
+${bin}: ${bin:=.o} ${src:.c=.o} ${inc}
+	${CC} ${LFLAGS} -o $@ $@.o ${src:.c=.o} ${LIBS}
 
 .c.o:
 	${CC} -c ${CFLAGS} -o $@ $<
