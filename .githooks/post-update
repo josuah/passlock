@@ -1,0 +1,7 @@
+#!/bin/sh -ex
+tmp=$(git-hooks-workdir "$@")
+trap 'rm -rf "$tmp"' INT TERM EXIT HUP
+
+cd "$tmp/doc"
+notwiki-doc html "/srv/www/htdocs/code/ratimap" *
+notwiki-doc gph  "/srv/gopher/ratimap" *
