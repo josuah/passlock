@@ -1,29 +1,49 @@
 PassLock
 ========
-PassLock is a simple password checking program using the [checkpassword][1]
-interface.
+PassLock is a backend for [checkpassword][1], a generic and simple password
+checking interface.
 
 It provides a set of commands to create password entries and check them.
 
-It stores usernames, password and a path in a simple passwd-style file (default
-to /etc/passlock/default).
-
-The password is hashed using [argon2id][2] from [libsodium][3].
+It stores usernames, password and a path with one file per user, with a path
+pattern of your choice, hashed with [argon2id][2] from [libsodium][3].
 
 [1]: https://cr.yp.to/checkpwd.html
 [2]: https://www.argon2.com/
 [3]: https://download.libsodium.org/doc/
 
-Building
---------
-The only dependencies is a few of the standard libc and
-the libsodium library.
+How to use it?
+--------------
+First create an user:
 
-The traditionnal make install uses the default, otherwise:
-	make install PREFIX="$PREFIX" LIBSODIUM="$libsodium"
+	$ passlock-set -p /etc/paslock/% ace-ventura
+	enter passphrase: sekrit
 
-How it works
-------------
+Then test that the password is recognised:
+
+	$ printf '%s\0' "ace-ventura" "sekrit" "0" |
+	  passlock-check \
+	    -p /etc/paslock/% \
+	    -h /var/mail/%/Maildir \
+	  echo welcome aboard
+
+Then use it with a checkpassword-enabled daemon:
+
+	$ preauth-daemon passlock-check \
+	    -p /etc/paslock/% \
+	    -h /var/mail/%/Maildir \
+	  authenticated-daemon
+
+How to get it?
+--------------
+It requires a C compiler and the libsodium library.
+
+	$ git clone git://code.z0.is/passlock
+	$ cd passlock
+	$ make install PREFIX="$PREFIX" LIBSODIUM="$libsodium"
+
+How does it work?
+-----------------
 The main daemon read the password from the user logging in, execute
 passlock-check and write the password to a pipe (file descriptor 3).
 
@@ -32,12 +52,15 @@ specified program.  Otherwise, it exits with an error and nothing
 more happen.
 
 Processes running during authentication:
-	preauth-daemon passlock-check authenticated-daemon
+
+	preauth-daemon passlock-check -p... authenticated-daemon
 	└─ passlock-check authenticated-daemon
 
 Processes running after failure:
-	preauth-daemon passlock-check authenticated-daemon
+
+	preauth-daemon passlock-check -p... authenticated-daemon
 
 Processes running after success:
-	preauth-daemon passlock-check authenticated-daemon
+
+	preauth-daemon passlock-check -p... authenticated-daemon
 	└─ authenticated-daemon
