@@ -1,0 +1,62 @@
+.Dt PASSLOCK-SET 1
+.Dd $Mdocdate: August 14 2019$
+.Os
+.
+.
+.Sh NAME
+.
+.Nm passlock-set
+.Nd manage text-based password files
+.
+.
+.Sh SYNOPSIS
+.
+.Nm passlock-set
+.Op Fl v
+.Ar pattern
+.Ar user
+.Ar path
+.Ar <passphrase
+.
+.
+.Sh DESCRIPTION
+.
+The
+.Nm passlock-set
+toolity add a passphrase to the passfile with the
+.Ar user
+and
+.Ar path
+specified by the arguments.
+It reads a single line from stdin used as a passphrase.
+.
+.Bl -tag -width 6n
+.
+.It Fl v
+Display the version.
+.El
+.
+.Ar pattern
+specifies the file to use as a password storage.
+.
+.
+.Sh EXIT STATUS
+.
+.Ex -std
+.
+.
+.Sh SEE ALSO
+.
+.Xr passlock-check 1
+.
+.Sh HISTORY
+.
+The passlock toolities have originally been written for the
+.Xr ratimap 8
+imap server.
+.
+.
+.Sh AUTHORS
+.
+.An Josuah Demangeon
+.Aq Mt me@josuah.net

@@ -3,5 +3,7 @@ tmp=$(git-hooks-workdir "$@")
 trap 'rm -rf "$tmp"' INT TERM EXIT HUP
 
 cd "$tmp/doc"
-notwiki-doc html "/srv/www/htdocs/code/ratimap" *
-notwiki-doc gph  "/srv/gopher/ratimap" *
+notwiki-doc html "/srv/www/htdocs/code/passlock" *
+notwiki-doc gph  "/srv/gopher/passlock" *
+notwiki-mandoc html html "/srv/www/htdocs/code/man" *
+notwiki-mandoc html html "/srv/gopher/man" *
