@@ -57,6 +57,7 @@ main(int argc, char **argv)
 
 	ms += ms / 2 - randombytes_uniform(ms / 2);
 
+	debug("reading credentials from fd3");
 	if ((fp = fdopen(3, "r")) == NULL)
 		die("setting buffering on fd3");
 	e = buf;
@@ -66,6 +67,7 @@ main(int argc, char **argv)
 		die("reading fd3");
 	fclose(fp);
 
+	debug("parsing credentials");
 	user = s = buf;
 	if ((s = memchr(s, '\0', e-s)) == NULL)
 		die("no username");
@@ -77,6 +79,7 @@ main(int argc, char **argv)
 		die("no timestamp");
 	(void)date;
 
+	debug("reading the password hash from filesystem");
 	if (path_fmt(path_home, sizeof(path_home), flag['h'], user) < 0)
 		die("formatting home path out of '%s'", flag['p']);
 	if (path_fmt(path_pass, sizeof(path_pass), flag['p'], user) < 0)
@@ -102,18 +105,21 @@ main(int argc, char **argv)
 	if (chdir(path_home) < 0)
 		die("chdir", path_home);
 
+	debug("executing %s", *argv);
 	execvp(*argv, argv);
-	die("exec", *argv);
+	die("executing %s", *argv);
+
 dummy:
 	debug("hash a dummy password to prevent statistical timing attacks");
 	if (crypto_pwhash_str_verify(dummy, "", 1) < 0)
 		{/* nothing */}
 	errno = 0;
+
 sleep:
 	debug("sleeping for %dms to prevent timing attacks", ms);
 	ts.tv_sec = ms / 1000;
 	ts.tv_nsec = ms % 1000 * 1000000;
-	while (nanosleep(&ts, &ts) < 0)
-		continue;
+	nanosleep(&ts, &ts);
+
 	return 1;
 }
