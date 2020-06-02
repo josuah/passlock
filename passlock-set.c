@@ -26,7 +26,7 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	char *user, *pass, tmp[2048], dst[2048];
+	char *user, *pass, path_tmp[2048], path_dst[2048];
 	char hash[crypto_pwhash_STRBYTES];
 	int fd, c, e;
 	size_t sz;
@@ -51,14 +51,16 @@ main(int argc, char **argv)
 	if (*argv != NULL)
 		usage();
 
-	if (path_fmt(dst, sizeof(dst), flag['p'], user) < 0)
-		die("building password file path '%s'", flag['p']);
-	sz = sizeof(tmp);
-	if (snprintf(tmp, sz, "%s.%d", dst, getpid()) >= (int)sz)
-		die("building temporary path");
+	sz = sizeof(path_dst);
+	if (path_fmt(path_dst, sz, flag['p'], user, "/pass") < 0)
+		errno=ENAMETOOLONG, die("building destination path");
 
-	if ((fd = open(tmp, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR)) < 0)
-		die("opening %s", tmp);
+	sz = sizeof(path_tmp);
+	if (snprintf(path_tmp, sz, "%s.%d", path_dst, getpid()) >= (int)sz)
+		errno=ENAMETOOLONG, die("building temporary path");
+
+	if ((fd = open(path_tmp, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR)) < 0)
+		die("opening %s", path_tmp);
 
 	e = errno;
 	if (isatty(0)) {
@@ -86,8 +88,8 @@ main(int argc, char **argv)
 		die("writing to file");
 	close(fd);
 
-	if (rename(tmp, dst) < 0)
-		die("renaming from '%s' to '%s'", tmp, dst);
+	if (rename(path_tmp, path_dst) < 0)
+		die("renaming from '%s' to '%s'", path_tmp, path_dst);
 
 	return 0;
 }

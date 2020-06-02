@@ -25,7 +25,7 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	char path_home[2048], path_pass[2048], buf[2048];
+	char path_home[2048], path_pass[2048], path_lock[2048], buf[2048];
 	char *s, *e, *user, *pass, *date, *hash;
 	size_t sz;
 	int c, ms;
@@ -79,11 +79,17 @@ main(int argc, char **argv)
 		die("no timestamp");
 	(void)date;
 
-	debug("reading the password hash from filesystem");
-	if (path_fmt(path_home, sizeof(path_home), flag['h'], user) < 0)
+	debug("formatting the home and pass paths");
+	if (path_fmt(path_home, sizeof(path_home), flag['h'], user, "") < 0)
 		die("formatting home path out of '%s'", flag['p']);
-	if (path_fmt(path_pass, sizeof(path_pass), flag['p'], user) < 0)
-		die("formatting pass path out of '%s'", flag['p']);
+	sz = sizeof(path_pass);
+	if (path_fmt(path_pass, sizeof(path_pass), flag['p'], user, "/pass") < 0)
+		die("formatting passfile path out of '%s'", flag['p']);
+	sz = sizeof(path_lock);
+	if (path_fmt(path_lock, sz, flag['p'], user, "/lock") < 0)
+		die("formatting lockfile path out of '%s'", flag['p']);
+
+	debug("reading the password hash from filesystem");
 	if ((fp = fopen(path_pass, "r")) == NULL) {
 		warn("opening '%s' for reading", path_pass);
 		goto dummy;
