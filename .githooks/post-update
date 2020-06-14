@@ -10,5 +10,5 @@ notwiki-mandoc html html /srv/gopher/man *
 
 cd "$tmp"
 make dist
-cp *.tar.gz /srv/http/vhost/code/notwiki
-cp *.tar.gz /srv/gopher/notwiki
+cp *.tar.gz /srv/http/vhost/code/passlock
+cp *.tar.gz /srv/gopher/passlock
