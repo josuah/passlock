@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/file.h>
 #include <time.h>
@@ -98,15 +99,18 @@ main(int argc, char **argv)
 
 	debug("checking password for '%s'", user);
 	if (crypto_pwhash_str_verify(hash, pass, strlen(pass)) < 0) {
-		errno = 0; /* not a helpful message */
-		warn("invalid password: user=%s hash=%s", user, pass, hash);
+		warn("invalid password: user=%s hash=%s", user, hash);
 		goto sleep2;
 	}
 	free(hash);
 
 	info("user could log in: '%s', executing %s", user, *argv);
 	if (chdir(path_home) < 0)
-		die("chdir", path_home);
+		die("chdir %s", path_home);
+	if (setenv("HOME", path_home, 1) < 0)
+		die("setenv HOME=%s", path_home);
+	if (setenv("USER", user, 1) < 0)
+		die("setenv USER=%s", user);
 
 	debug("executing %s", *argv);
 	execvp(*argv, argv);
