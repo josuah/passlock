@@ -1,9 +1,10 @@
 #include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/file.h>
 #include <time.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include <sodium.h>
 
@@ -98,7 +99,7 @@ main(int argc, char **argv)
 	debug("checking password for '%s'", user);
 	if (crypto_pwhash_str_verify(hash, pass, strlen(pass)) < 0) {
 		errno = 0; /* not a helpful message */
-		warn("invalid password: user=%s pass=%s hash=%s", user, pass, hash);
+		warn("invalid password: user=%s hash=%s", user, pass, hash);
 		goto sleep2;
 	}
 	free(hash);
