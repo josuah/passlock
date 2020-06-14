@@ -64,3 +64,29 @@ Processes running after success:
 
 	preauth-daemon passlock-check -p... authenticated-daemon
 	└─ authenticated-daemon
+
+How to configure Dovecot?
+-------------------------
+[Dovecot](https://dovecot.org/) can use a [checkpassword backend][d1], and
+passlock works well with it. If your password file is `/var/mail/$user/pass`
+owned by `mail` and your user mailbox is at `/var/mail/$user/Maildir`:
+
+[d1]: https://doc.dovecot.org/configuration_manual/authentication/checkpassword
+
+```
+mail_location = maildir:~/Maildir
+
+service auth {
+        user = mail
+}
+
+userdb {
+        driver = static
+        args = uid=mail gid=mail home=/var/mail/%L{username}
+}
+
+passdb {
+        driver = checkpassword
+        args = /usr/bin/env passlock-check -s 10 -h /var/mail/%% -p /var/mail/%%/pass
+}
+```
