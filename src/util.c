@@ -15,15 +15,6 @@ strlcpy(char *buf, const char *str, size_t sz)
 	return len;
 }
 
-size_t
-strlcat(char *d, char const *s, size_t sz)
-{
-	size_t len;
-
-	len = strlen(d);
-	return len + strlcpy(d + len, s, sz - len);
-}
-
 /*
  * Remove one newline character from the end of the string if any
  * and return 1, or 0 if there is not one.
@@ -44,6 +35,8 @@ strchomp(char *s)
 int
 is_valid(char *s)
 {
+	if (strcmp(s, ".") == 0 || strcmp(s, "..") == 0)
+		return 0;
         for (; *s != '\0'; s++)
                 if ((!isalnum(*s) && !ispunct(*s)) || *s == '/')
 			return 0;
@@ -51,8 +44,10 @@ is_valid(char *s)
 }
 
 int
-path_fmt(char *buf, size_t len, char *fmt, char *name, char *tail)
+path_fmt(char *buf, size_t len, char *fmt, char *name)
 {
+	if (!is_valid(name))
+		return errno=EINVAL, -1;
 	for (; *fmt != '\0'; fmt++) {
 		if (*fmt == '%') {
 			size_t i;
@@ -63,11 +58,12 @@ path_fmt(char *buf, size_t len, char *fmt, char *name, char *tail)
 			len -= i;
 		} else {
 			if (--len == 0)
-				return errno=ENAMETOOLONG, -1;;
+				return errno=ENAMETOOLONG, -1;
 			*buf++ = *fmt;
 		}
 	}
-	if (strlcpy(buf, tail, len) >= len)
+	if (--len == 0)
 		return errno=ENAMETOOLONG, -1;
+	*buf++ = '\0';
 	return 0;
 }

@@ -19,7 +19,7 @@ void
 usage(void)
 {
 	fprintf(stdout, "usage: %s"
-	  " [-v] -p /path/%%/pass/ user <passphrase\n", arg0);
+	  " [-v] -p /path/%%/pass user <passphrase\n", arg0);
 	exit(1);
 }
 
@@ -52,7 +52,7 @@ main(int argc, char **argv)
 		usage();
 
 	sz = sizeof(path_dst);
-	if (path_fmt(path_dst, sz, flag['p'], user, "/pass") < 0)
+	if (path_fmt(path_dst, sz, flag['p'], user) < 0)
 		errno=ENAMETOOLONG, die("building destination path");
 
 	sz = sizeof(path_tmp);

@@ -1,41 +1,40 @@
 #include <errno.h>
 #include <string.h>
+#include <sys/file.h>
 #include <time.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <sodium.h>
 
 #include "log.h"
 #include "util.h"
 
-char *arg0 = NULL;
-char **argv = NULL;
+char *arg0;
 char *flag['z'];
-
-char *dummy = "$argon2id$v=19$m=262144,t=3,p=1$4ES6M9HdwRuJmqzp4txihg$Dvxnm4JcP0uMZU0J6KF8zVuzIVlQH6miDEM1eclYScM";
 
 void
 usage(void)
 {
 	fprintf(stdout, "usage: %s"
-	 " [-v] -h /path/%%/home/ -p /path/%%/pass/ prog...\n", arg0);
+	  " [-v] [-s ms] -h /path/%%/home/ -p /path/%%/pass prog...\n", arg0);
 	exit(1);
 }
 
 int
 main(int argc, char **argv)
 {
-	char path_home[2048], path_pass[2048], path_lock[2048], buf[2048];
+	char path_home[2048], path_pass[2048], buf[2048];
 	char *s, *e, *user, *pass, *date, *hash;
 	size_t sz;
-	int c, ms;
+	int c, sec = 0, ms = 0;
 	FILE *fp;
 	struct timespec ts;
 
-	flag['s'] = "1000";
+	flag['s'] = "1";
 
 	arg0 = *argv;
-	while ((c = getopt(argc, argv, "h:p:")) > -1) {
+	while ((c = getopt(argc, argv, "s:h:p:")) > -1) {
 		if (c == '?')
 			usage();
 		flag[c] = optarg ? optarg : "1";
@@ -46,7 +45,7 @@ main(int argc, char **argv)
 	if (flag['v'] != NULL)
 		fprintf(stdout, "%s\n", VERSION), exit(0);
 	if (flag['s'] != NULL)
-		if ((ms = atoi(flag['s'])) < 2)
+		if ((sec = atoi(flag['s'])) == 0)
 			warn("invalid number"), usage();
 	if (flag['h'] == NULL)
 		usage();
@@ -55,7 +54,7 @@ main(int argc, char **argv)
 	if (*argv == NULL)
 		usage();
 
-	ms += ms / 2 - randombytes_uniform(ms / 2);
+	ms = sec * 2000 - randombytes_uniform(sec * 2000);
 
 	debug("reading credentials from fd3");
 	if ((fp = fdopen(3, "r")) == NULL)
@@ -80,19 +79,16 @@ main(int argc, char **argv)
 	(void)date;
 
 	debug("formatting the home and pass paths");
-	if (path_fmt(path_home, sizeof(path_home), flag['h'], user, "") < 0)
+	if (path_fmt(path_home, sizeof(path_home), flag['h'], user) < 0)
 		die("formatting home path out of '%s'", flag['p']);
 	sz = sizeof(path_pass);
-	if (path_fmt(path_pass, sizeof(path_pass), flag['p'], user, "/pass") < 0)
+	if (path_fmt(path_pass, sizeof(path_pass), flag['p'], user) < 0)
 		die("formatting passfile path out of '%s'", flag['p']);
-	sz = sizeof(path_lock);
-	if (path_fmt(path_lock, sz, flag['p'], user, "/lock") < 0)
-		die("formatting lockfile path out of '%s'", flag['p']);
 
 	debug("reading the password hash from filesystem");
 	if ((fp = fopen(path_pass, "r")) == NULL) {
 		warn("opening '%s' for reading", path_pass);
-		goto dummy;
+		goto sleep1;
 	}
 	if (getline(&hash, &sz, fp) == -1)
 		die("reading %s", path_pass);
@@ -102,8 +98,8 @@ main(int argc, char **argv)
 	debug("checking password for '%s'", user);
 	if (crypto_pwhash_str_verify(hash, pass, strlen(pass)) < 0) {
 		errno = 0; /* not a helpful message */
-		warn("invalid password: user=%s hash=%s", user, hash);
-		goto sleep;
+		warn("invalid password: user=%s pass=%s hash=%s", user, pass, hash);
+		goto sleep2;
 	}
 	free(hash);
 
@@ -115,14 +111,12 @@ main(int argc, char **argv)
 	execvp(*argv, argv);
 	die("executing %s", *argv);
 
-dummy:
-	debug("hash a dummy password to prevent statistical timing attacks");
-	if (crypto_pwhash_str_verify(dummy, "", 1) < 0)
-		{/* nothing */}
-	errno = 0;
+sleep1:
+	debug("sleeping for attenuating statistical attacks", ms);
+	sleep(1);
 
-sleep:
-	debug("sleeping for %dms to prevent timing attacks", ms);
+sleep2:
+	debug("sleeping for %dms to blur timing attacks", ms);
 	ts.tv_sec = ms / 1000;
 	ts.tv_nsec = ms % 1000 * 1000000;
 	nanosleep(&ts, &ts);
