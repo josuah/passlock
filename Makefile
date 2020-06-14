@@ -1,22 +1,39 @@
-include config.mk
-include content.mk
+NAME = passlock
+VERSION = 0.1
 
-all: ${bin}
+SRC = src/log.c src/util.c
+HDR = src/util.h src/log.h
+BIN = passlock-check passlock-debug passlock-set
+OBJ = ${SRC:.c=.o}
 
-${bin}: ${bin:=.o} ${src:.c=.o} ${inc}
-	${CC} ${LFLAGS} -o $@ $@.o ${src:.c=.o} ${LIBS}
+W = -Wall -Wextra -std=c99 --pedantic
+I = -I'${LIBSODIUM}/include' -I'src'
+L = -L'${LIBSODIUM}/lib'
+D = -D_POSIX_C_SOURCE=200811L -DVERSION='"${VERSION}"'
+CFLAGS = $W $I $D -g
+LFLAGS = $W $L
+LIBS = -static -lsodium -lpthread
+
+all: ${BIN}
+
+${BIN}: ${BIN:=.o} ${OBJ} ${HDR}
+	${CC} ${LFLAGS} -o $@ $@.o ${OBJ} ${LIBS}
 
 .c.o:
 	${CC} -c ${CFLAGS} -o $@ $<
 
 clean:
-	rm -f *.a *.o */*.o */*/*.o ${bin} cmd/test
+	rm -f *.a *.o */*.o *.gz ${BIN}
 
-release:
-	git tag -f "${VERSION}"
+dist:
+	rm -rf ${NAME}-${VERSION}
+	mkdir -p ${NAME}-${VERSION}/src
+	cp -r README Makefile doc ${BIN:=.c} ${NAME}-${VERSION}
+	cp src/*.[ch] ${NAME}-${VERSION}/src
+	tar -cf - ${NAME}-${VERSION} | gzip -c >${NAME}-${VERSION}.tar.gz
 
-install: ${bin}
-	mkdir -p ${PREFIX}/bin
-	cp ${bin} ${PREFIX}/bin
-	mkdir -p ${PREFIX}/share/man/man1
-	cp -f doc/*.1  ${PREFIX}/share/man/man1
+install: ${BIN}
+	mkdir -p ${DESTDIR}${PREFIX}/BIN
+	cp -f ${BIN} ${DESTDIR}${PREFIX}/BIN
+	mkdir -p ${DESTDIR}${PREFIX}/share/man/man1
+	cp -f doc/*.1 ${DESTDIR}${PREFIX}/share/man/man1

@@ -1,4 +1,6 @@
 *.o
 *.a
 *.core
+*.gz
 /passlock-*[!.]?
+/passlock-[0-9]*
