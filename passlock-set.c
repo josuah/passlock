@@ -77,8 +77,8 @@ main(int argc, char **argv)
 
 	info("hashing password");
 	if (crypto_pwhash_str(hash, pass, strlen(pass),
-	  crypto_pwhash_OPSLIMIT_MODERATE,
-	  crypto_pwhash_MEMLIMIT_MODERATE) < 0)
+	  crypto_pwhash_OPSLIMIT_INTERACTIVE,
+	  crypto_pwhash_MEMLIMIT_INTERACTIVE) < 0)
 		die("hashing password");
 
 	free(pass);
