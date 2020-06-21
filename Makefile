@@ -1,5 +1,5 @@
 NAME = passlock
-VERSION = 0.1
+VERSION = 0.2
 
 SRC = src/log.c src/util.c
 HDR = src/util.h src/log.h
@@ -13,6 +13,8 @@ D = -D_POSIX_C_SOURCE=200811L -DVERSION='"${VERSION}"'
 CFLAGS = $W $I $D -g
 LFLAGS = $W $L
 LIBS = -static -lsodium -lpthread
+PREFIX = /usr/local
+MANPREFIX = ${PREFIX}/man
 
 all: ${BIN}
 
@@ -23,17 +25,15 @@ ${BIN}: ${BIN:=.o} ${OBJ} ${HDR}
 	${CC} -c ${CFLAGS} -o $@ $<
 
 clean:
-	rm -f *.a *.o */*.o *.gz ${BIN}
+	rm -rf ${NAME}-${VERSION} ${BIN} *.o */*.o *.gz
 
-dist:
-	rm -rf ${NAME}-${VERSION}
-	mkdir -p ${NAME}-${VERSION}/src
-	cp -r README Makefile doc ${BIN:=.c} ${NAME}-${VERSION}
-	cp src/*.[ch] ${NAME}-${VERSION}/src
-	tar -cf - ${NAME}-${VERSION} | gzip -c >${NAME}-${VERSION}.tar.gz
-
-install: ${BIN}
+install: all
 	mkdir -p ${DESTDIR}${PREFIX}/BIN
 	cp -f ${BIN} ${DESTDIR}${PREFIX}/BIN
-	mkdir -p ${DESTDIR}${PREFIX}/share/man/man1
-	cp -f doc/*.1 ${DESTDIR}${PREFIX}/share/man/man1
+	mkdir -p ${DESTDIR}${MANPREFIX}/man1
+	cp -f doc/*.1 ${DESTDIR}${MANPREFIX}/man1
+
+dist: clean
+	mkdir -p ${NAME}-${VERSION}
+	cp -r README Makefile doc src ${BIN:=.c} ${NAME}-${VERSION}
+	tar -cf - ${NAME}-${VERSION} | gzip -c >${NAME}-${VERSION}.tar.gz

@@ -18,7 +18,7 @@ char *flag['z'] = {0};
 void
 usage(void)
 {
-	fprintf(stdout, "usage: %s"
+	fprintf(stderr, "usage: %s"
 	  " [-v] -p /path/%%/pass user <passphrase\n", arg0);
 	exit(1);
 }

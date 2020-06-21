@@ -18,7 +18,7 @@ char *flag['z'];
 void
 usage(void)
 {
-	fprintf(stdout, "usage: %s"
+	fprintf(stderr, "usage: %s"
 	  " [-v] [-s ms] -h /path/%%/home/ -p /path/%%/pass prog...\n", arg0);
 	exit(1);
 }
@@ -27,7 +27,7 @@ int
 main(int argc, char **argv)
 {
 	char path_home[2048], path_pass[2048], buf[2048];
-	char *s, *e, *user, *pass, *date, *hash;
+	char *s, *e, *user, *pass, *hash;
 	size_t sz;
 	int c, sec = 0, ms = 0;
 	FILE *fp;
@@ -75,10 +75,8 @@ main(int argc, char **argv)
 	pass = ++s;
 	if ((s = memchr(s, '\0', e-s)) == NULL)
 		die("no passphrase");
-	date = ++s;
-	if ((s = memchr(s, '\0', e-s)) == NULL)
-		die("no timestamp");
-	(void)date;
+
+	/* ignore the trailing data */
 
 	debug("formatting the home and pass paths");
 	if (path_fmt(path_home, sizeof(path_home), flag['h'], user) < 0)
