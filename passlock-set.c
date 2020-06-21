@@ -59,7 +59,7 @@ main(int argc, char **argv)
 	if (snprintf(path_tmp, sz, "%s.%d", path_dst, getpid()) >= (int)sz)
 		errno=ENAMETOOLONG, die("building temporary path");
 
-	if ((fd = open(path_tmp, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR)) < 0)
+	if ((fd = open(path_tmp, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP)) < 0)
 		die("opening %s", path_tmp);
 
 	e = errno;
