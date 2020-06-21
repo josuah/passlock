@@ -27,9 +27,9 @@ ${BIN}: ${BIN:=.o} ${OBJ} ${HDR}
 clean:
 	rm -rf ${NAME}-${VERSION} ${BIN} *.o */*.o *.gz
 
-install: all
-	mkdir -p ${DESTDIR}${PREFIX}/BIN
-	cp -f ${BIN} ${DESTDIR}${PREFIX}/BIN
+install:
+	mkdir -p ${DESTDIR}${PREFIX}/bin
+	cp -f ${BIN} ${DESTDIR}${PREFIX}/bin
 	mkdir -p ${DESTDIR}${MANPREFIX}/man1
 	cp -f doc/*.1 ${DESTDIR}${MANPREFIX}/man1
 
