@@ -1,10 +1,8 @@
 NAME = passlock
 VERSION = 0.2
 
-SRC = src/log.c src/util.c
-HDR = src/util.h src/log.h
-BIN = passlock-check passlock-debug passlock-set
-OBJ = ${SRC:.c=.o}
+PREFIX = /usr/local
+MANPREFIX = ${PREFIX}/man
 
 W = -Wall -Wextra -std=c99 --pedantic
 I = -I'${LIBSODIUM}/include' -I'src'
@@ -13,8 +11,11 @@ D = -D_POSIX_C_SOURCE=200811L -DVERSION='"${VERSION}"'
 CFLAGS = $W $I $D -g
 LFLAGS = $W $L
 LIBS = -static -lsodium -lpthread
-PREFIX = /usr/local
-MANPREFIX = ${PREFIX}/man
+
+SRC = src/log.c src/util.c
+HDR = src/util.h src/log.h
+BIN = passlock-check passlock-debug passlock-set
+OBJ = ${SRC:.c=.o}
 
 all: ${BIN}
 
