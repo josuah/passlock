@@ -1,0 +1,125 @@
+.Dt PASSLOCK 8
+.Dd $Mdocdate: July 7 2020$
+.Os
+.
+.
+.Sh NAME
+.
+.Nm passlock
+.Nd manages and verify passwords
+.
+.
+.Sh SYNOPSIS
+.
+.Nm passlock-check
+.Op Fl v
+.Op Fl s Ar ms
+.Fl h Ar pattern
+.Fl p Ar pattern
+.Ar cmd
+.Ar [...]
+.Ar 3<user-pass-string
+.
+.Nm passlock-set
+.Op Fl v
+.Fl p Ar pattern
+.Ar user
+.Ar <passphrase
+.
+.Nm passlock-debug
+.
+.
+.Sh DESCRIPTION
+.
+The
+.Nm passlock
+toolset manages passwords using libsodium, and provides a password backend for
+various daemons.
+.
+.Bl -tag -width 6n
+.
+.It Fl v
+Display the version.
+.
+.It Fl d Ar path
+Specifies the file to use as a password storage.
+.
+.It Fl s Ar sleep
+Wait for
+.Ar sleep
+seconds in case the password fails.
+.
+.El
+.
+.Pp
+.Nm passlock-set
+sets the path specified by
+.Fl p Ar pattern
+to a
+.Xr libsodium 3
+hash of the password read from stdin.
+.
+.Pp
+.Nm passlock-check
+is a checkpassword replacement: it execute its
+.Ar cmd Op Ar arg...
+only if the authentication string from file descriptor 3 matches the password
+at the path specified by
+.Fl p Ar pattern .
+Password read follow this format (with the realm ignored):
+.Dq user\\\\0password\\\\0realm
+.
+.Pp
+.Nm passlock-debug
+simply logs the information sent to it to standard error and fails to log the user.
+This might reveal the password.
+.
+.Pp
+The
+.Ar pattern
+arguments will have all percent signs and the following character replaced according to the following character:
+.
+.Bl -tag -width 6n
+.
+.It Ic %d
+The domain part of an email address.
+.
+.It Ic %l
+The local part of an email address.
+.
+.It Ic %u
+The whole username.
+.
+.It Ic %%
+Puts the percent sign itself, used for escaping the percent if needed.
+.
+.El
+.
+.
+.Sh EXIT STATUS
+.
+.Ex -std
+.
+.
+.Sh EXAMPLES
+.
+.Bd -literal
+$ authd passlock-check -p /etc/pass/%u protected-daemon -args
+.Ed
+.
+.Bd -literal
+$ printf '%s\\0' "$user" "$pass" "$(date +%s)" \e
+  | passlock-check -h /var/mail/%d/%l/Maildir -p /var/mail/%d/%l/pass 3>&0 \e
+      echo success
+.Ed
+.
+.
+.Sh STANDARDS
+.
+.Lk "checkpassword: a simple password-checking interface" https://cr.yp.to/checkpwd.html
+.
+.
+.Sh AUTHORS
+.
+.An Josuah Demangeon
+.Aq Mt man@josuah.net

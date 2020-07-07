@@ -11,6 +11,7 @@
 
 #include "log.h"
 #include "util.h"
+#include "passlock.h"
 
 char *arg0;
 char *flag['z'];
@@ -27,8 +28,8 @@ int
 main(int argc, char **argv)
 {
 	char path_home[2048], path_pass[2048], buf[2048];
-	char *s, *e, *user, *pass, *hash;
-	size_t sz;
+	char *s, *e, *user, *pass, *hash = NULL;
+	size_t sz = 0;
 	int c, sec = 0, ms = 0;
 	FILE *fp;
 	struct timespec ts;
@@ -44,11 +45,17 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	if (flag['v'] != NULL)
-		fprintf(stdout, "%s\n", VERSION), exit(0);
-	if (flag['s'] != NULL)
-		if ((sec = atoi(flag['s'])) == 0)
-			warn("invalid number"), usage();
+	if (flag['v'] != NULL) {
+		fprintf(stdout, "%s\n", VERSION);
+		exit(0);
+	}
+	if (flag['s'] != NULL) {
+		sec = atoi(flag['s']);
+		if (sec == 0) {
+			warn("invalid number");
+			usage();
+		}
+	}
 	if (flag['h'] == NULL)
 		usage();
 	if (flag['p'] == NULL)
@@ -79,19 +86,22 @@ main(int argc, char **argv)
 	/* ignore the trailing data */
 
 	debug("formatting the home and pass paths");
-	if (path_fmt(path_home, sizeof(path_home), flag['h'], user) < 0)
+	if (passlock_expand_str(path_home, sizeof(path_home), flag['h'], user) < 0)
 		die("formatting home path out of '%s'", flag['p']);
 	sz = sizeof(path_pass);
-	if (path_fmt(path_pass, sizeof(path_pass), flag['p'], user) < 0)
+	if (passlock_expand_str(path_pass, sizeof(path_pass), flag['p'], user) < 0)
 		die("formatting passfile path out of '%s'", flag['p']);
 
 	debug("reading the password hash from filesystem");
-	if ((fp = fopen(path_pass, "r")) == NULL) {
+	fp = fopen(path_pass, "r");
+	if (fp == NULL) {
 		warn("opening '%s' for reading", path_pass);
 		goto sleep1;
 	}
-	if (getline(&hash, &sz, fp) == -1)
+	if (getline(&hash, &sz, fp) < 0)
 		die("reading %s", path_pass);
+	sz = 0;
+		debug("%c", hash[0]);
 	strchomp(hash);
 	fclose(fp);
 

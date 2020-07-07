@@ -9,18 +9,20 @@ I = -I'${LIBSODIUM}/include' -I'src'
 L = -L'${LIBSODIUM}/lib'
 D = -D_POSIX_C_SOURCE=200811L -DVERSION='"${VERSION}"'
 CFLAGS = $W $I $D -g
-LFLAGS = $W $L
+LDFLAGS = $W $L -static
 LIBS = -static -lsodium -lpthread
 
-SRC = src/log.c src/util.c
-HDR = src/util.h src/log.h
+SRC = src/util.c src/log.c src/passlock.c
+HDR = src/util.h src/log.h src/passlock.h
 BIN = passlock-check passlock-debug passlock-set
 OBJ = ${SRC:.c=.o}
 
 all: ${BIN}
 
-${BIN}: ${BIN:=.o} ${OBJ} ${HDR}
-	${CC} ${LFLAGS} -o $@ $@.o ${OBJ} ${LIBS}
+${BIN}: ${BIN:=.o} ${OBJ}
+	${CC} ${LDFLAGS} -o $@ $@.o ${OBJ} ${LIBS}
+
+${BIN:=.o} ${OBJ}: ${HDR} Makefile
 
 .c.o:
 	${CC} -c ${CFLAGS} -o $@ $<

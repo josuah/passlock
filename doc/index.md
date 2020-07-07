@@ -16,22 +16,22 @@ How to use it?
 --------------
 First create an user:
 
-	$ passlock-set -p /etc/paslock/% ace-ventura
+	$ passlock-set -p /etc/paslock/%u ace-ventura
 	enter passphrase: sekrit
 
 Then test that the password is recognised:
 
 	$ printf '%s\0' "ace-ventura" "sekrit" "0" |
 	  passlock-check \
-	    -p /etc/paslock/% \
-	    -h /var/mail/%/Maildir \
+	    -p /etc/paslock/%u \
+	    -h /var/mail/%u/Maildir \
 	  echo welcome aboard
 
 Then use it with a checkpassword-enabled daemon:
 
 	$ preauth-daemon passlock-check \
-	    -p /etc/paslock/% \
-	    -h /var/mail/%/Maildir \
+	    -p /etc/paslock/%u \
+	    -h /var/mail/%u/Maildir \
 	  authenticated-daemon
 
 How to get it?
@@ -87,6 +87,12 @@ userdb {
 
 passdb {
         driver = checkpassword
-        args = /usr/bin/env passlock-check -s 10 -h /var/mail/%% -p /var/mail/%%/pass
+        args = /usr/bin/env passlock-check -s 10 -h /var/mail/%%u -p /var/mail/%%u/pass
 }
 ```
+
+I want to split local@domain into domain/local
+----------------------------------------------
+You can use `%d` for domain and `%l` for local part. Let me know if you have a
+different way of splitting your user names into directories, maybe
+non-email-style usernames.

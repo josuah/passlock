@@ -10,6 +10,7 @@
 #include <sodium.h>
 
 #include "util.h"
+#include "passlock.h"
 #include "log.h"
 
 char *arg0 = NULL;
@@ -42,32 +43,35 @@ main(int argc, char **argv)
 	argv += optind;
 	argc -= optind;
 
-	if (flag['v'])
-		fprintf(stdout, "%s\n", VERSION), exit(0);
+	if (flag['v']) {
+		fprintf(stdout, "%s\n", VERSION);
+		exit(0);
+	}
 	if (flag['p'] == NULL)
 		usage();
-	if ((user = *argv++) == NULL || !is_valid(user))
-		warn("invalid username"), usage();
+	if ((user = *argv++) == NULL || !passlock_username_is_valid(user))
+		warn("invalid username given on command line"), usage();
 	if (*argv != NULL)
 		usage();
 
-	sz = sizeof(path_dst);
-	if (path_fmt(path_dst, sz, flag['p'], user) < 0)
-		errno=ENAMETOOLONG, die("building destination path");
+	e = passlock_expand_str(path_dst, sizeof path_dst, flag['p'], user);
+	if (e < 0)
+		die("building destination path: %s", passlock_strerror(e));
 
-	sz = sizeof(path_tmp);
+	sz = sizeof path_tmp;
 	if (snprintf(path_tmp, sz, "%s.%d", path_dst, getpid()) >= (int)sz)
-		errno=ENAMETOOLONG, die("building temporary path");
+		errno = ENAMETOOLONG, die("building temporary path");
 
-	if ((fd = open(path_tmp, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP)) < 0)
+	fd = open(path_tmp, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
+	if (fd < 0)
 		die("opening %s", path_tmp);
 
-	e = errno;
 	if (isatty(0)) {
 		fprintf(stdout, "enter passphrase: ");
 		fflush(stdout);
+	} else {
+		errno = 0;
 	}
-	errno = e;
 
 	sz = 0;
 	pass = NULL;
