@@ -9,8 +9,8 @@
 
 #include <sodium.h>
 
+#include "compat.h"
 #include "log.h"
-#include "util.h"
 #include "passlock.h"
 
 char *arg0;

@@ -1,5 +1,5 @@
 #include "passlock.h"
-#include "util.h"
+#include "compat.h"
 
 #include <assert.h>
 #include <ctype.h>

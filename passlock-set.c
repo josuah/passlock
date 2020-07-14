@@ -9,7 +9,7 @@
 
 #include <sodium.h>
 
-#include "util.h"
+#include "compat.h"
 #include "passlock.h"
 #include "log.h"
 

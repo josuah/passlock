@@ -4,8 +4,7 @@
 #include <stdarg.h>
 
 /** src/log.c **/
-int log_level;
-void vlogf(int level, char const *flag, char const *fmt, va_list va);
+void log_vprintf(int level, char const *flag, char const *fmt, va_list va);
 void die(char const *fmt, ...);
 void warn(char const *fmt, ...);
 void info(char const *fmt, ...);

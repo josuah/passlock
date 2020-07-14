@@ -1,17 +1,6 @@
-#include "util.h"
+#include "compat.h"
 
 #include <string.h>
-
-size_t
-strlcpy(char *buf, const char *str, size_t sz)
-{
-	size_t len, cpy;
-
-	cpy = ((len = strlen(str)) > sz) ? (sz) : (len);
-	memcpy(buf, str, cpy + 1);
-	buf[sz - 1] = '\0';
-	return len;
-}
 
 /*
  * Remove one newline character from the end of the string if any

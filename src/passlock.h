@@ -14,7 +14,7 @@ enum passlock_err {
 
 /** src/passlock.c **/
 char * passlock_strerror(int i);
-int passlock_username_is_valid(char *s);
+int passlock_username_is_valid(char *username);
 int passlock_expand_str(char *buf, size_t sz, char *fmt, char *username);
 
 #endif
