@@ -13,7 +13,6 @@
 #include "log.h"
 #include "passlock.h"
 
-char *arg0;
 char *flag['z'];
 
 void

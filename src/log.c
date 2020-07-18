@@ -10,7 +10,7 @@
 #define LOG_DEFAULT 3 /* info */
 #endif
 
-char *arg0;
+char *arg0 = NULL;
 static int log_level = -1;
 
 void

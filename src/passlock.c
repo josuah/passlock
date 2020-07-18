@@ -1,10 +1,11 @@
 #include "passlock.h"
-#include "compat.h"
 
 #include <assert.h>
 #include <ctype.h>
 #include <stdint.h>
 #include <string.h>
+
+#include "compat.h"
 
 char *
 passlock_strerror(int i)
