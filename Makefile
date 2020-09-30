@@ -34,13 +34,13 @@ clean:
 
 install:
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -rf bin/* ${BIN} ${DESTDIR}${PREFIX}/bin
+	cp -rf ${BIN} ${DESTDIR}${PREFIX}/bin
 	mkdir -p ${DESTDIR}${MANPREFIX}/man1
 	cp -rf doc/*.1 ${DESTDIR}${MANPREFIX}/man1
 
 dist: clean
 	mkdir -p ${NAME}-${VERSION}
-	cp -r README Makefile bin doc ${SRC} ${NAME}-${VERSION}
+	cp -r README Makefile doc ${SRC} ${NAME}-${VERSION}
 	tar -cf - ${NAME}-${VERSION} | gzip -c >${NAME}-${VERSION}.tar.gz
 
 deploy: dist
