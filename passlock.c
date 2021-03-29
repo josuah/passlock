@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "compat.h"
+#include "util.h"
 
 char *
 passlock_strerror(int i)

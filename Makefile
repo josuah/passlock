@@ -1,22 +1,17 @@
 NAME = passlock
 VERSION = 0.1
 
-SRC = src/passlock.c src/log.c src/compat/strchomp.c src/compat/strlcpy.c
-
-HDR = src/compat.h src/passlock.h src/log.h
-
+SRC = passlock.c util.c
+HDR = passlock.h util.h
 BIN = passlock-check passlock-debug passlock-set
-
 OBJ = ${SRC:.c=.o}
-
 LIB = -lsodium
 
-W = -Wall -Wextra -std=c99 --pedantic
-I = -I'${LIBSODIUM}/include' -I'src'
-L = -L'${LIBSODIUM}/lib'
-D = -D_POSIX_C_SOURCE=200811L -DVERSION='"${VERSION}"'
-CFLAGS = $I $D $W -g
-LDFLAGS = $L -static
+CFLAGS = -g -D_POSIX_C_SOURCE=200811L -DVERSION='"${VERSION}"' \
+	-I'${LIBSODIUM}/include' \
+	-Wall -Wextra -std=c99 --pedantic
+LDFLAGS = -L'${LIBSODIUM}/lib' -static
+
 PREFIX = /usr/local
 MANPREFIX = ${PREFIX}/man
 
@@ -30,21 +25,20 @@ ${BIN}: ${OBJ} ${BIN:=.o}
 	${CC} ${LDFLAGS} -o $@ $@.o ${OBJ} ${LIB}
 
 clean:
-	rm -rf *.o */*.o ${BIN} ${NAME}-${VERSION} *.gz
+	rm -rf *.o ${BIN} ${NAME}-${VERSION} *.gz
 
 install:
 	mkdir -p ${DESTDIR}${PREFIX}/bin
 	cp -rf ${BIN} ${DESTDIR}${PREFIX}/bin
 	mkdir -p ${DESTDIR}${MANPREFIX}/man1
-	cp -rf doc/*.1 ${DESTDIR}${MANPREFIX}/man1
+	cp -rf *.1 ${DESTDIR}${MANPREFIX}/man1
 
 dist: clean
 	mkdir -p ${NAME}-${VERSION}
-	cp -r README Makefile doc ${SRC} ${NAME}-${VERSION}
+	cp -r README.md Makefile *.[ch1] ${NAME}-${VERSION}
 	tar -cf - ${NAME}-${VERSION} | gzip -c >${NAME}-${VERSION}.tar.gz
 
-deploy: dist
-	notwiki-doc html doc .
-	notwiki-doc gph  doc .
-	notwiki-mandoc html html doc .
-	notwiki-mandoc html html doc .
+site: dist
+	notmarkdown-html README.md | cat .site/head.html - >index.html
+	notmarkdown-gph README.md | cat .site/head.gph - >index.gph
+	cp .site/style.css style.css

@@ -6,7 +6,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "log.h"
+#include "util.h"
 
 int
 main(void)

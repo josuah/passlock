@@ -9,9 +9,8 @@
 
 #include <sodium.h>
 
-#include "compat.h"
+#include "util.h"
 #include "passlock.h"
-#include "log.h"
 
 char *flag['z'] = {0};
 
