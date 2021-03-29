@@ -4,3 +4,5 @@
 *.gz
 /passlock-*[!.]?
 /passlock-[0-9]*
+/index.*
+/style.css

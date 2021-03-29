@@ -3,6 +3,7 @@ VERSION = 0.1
 
 SRC = passlock.c util.c
 HDR = passlock.h util.h
+MAN1 = passlock.1
 BIN = passlock-check passlock-debug passlock-set
 OBJ = ${SRC:.c=.o}
 LIB = -lsodium
@@ -35,7 +36,7 @@ install:
 
 dist: clean
 	mkdir -p ${NAME}-${VERSION}
-	cp -r README.md Makefile *.[ch1] ${NAME}-${VERSION}
+	cp -r README.md Makefile *.[ch] ${MAN1} ${NAME}-${VERSION}
 	tar -cf - ${NAME}-${VERSION} | gzip -c >${NAME}-${VERSION}.tar.gz
 
 site: dist
