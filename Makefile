@@ -40,6 +40,6 @@ dist: clean
 	tar -cf - ${NAME}-${VERSION} | gzip -c >${NAME}-${VERSION}.tar.gz
 
 site: dist
-	notmarkdown-html README.md | cat .site/head.html - >index.html
-	notmarkdown-gph README.md | cat .site/head.gph - >index.gph
+	notmarkdown README.md | notmarkdown-html | cat .site/head.html - >index.html
+	notmarkdown README.md | notmarkdown-gph | cat .site/head.gph - >index.gph
 	cp .site/style.css style.css
