@@ -1,45 +1,46 @@
 NAME = passlock
 VERSION = 0.1
+PREFIX = /usr/local
+MANPREFIX = ${PREFIX}/man
+
+D = -D_POSIX_C_SOURCE=200811L -DVERSION='"${VERSION}"'
+CFLAGS = -g -Wall -Wextra -std=c99 --pedantic -fPIC $D -I'${LIBSODIUM}/include'
+LDFLAGS = -static -L'${LIBSODIUM}/lib'
 
 SRC = passlock.c util.c
 HDR = passlock.h util.h
-MAN1 = passlock.1
 BIN = passlock-check passlock-debug passlock-set
 OBJ = ${SRC:.c=.o}
 LIB = -lsodium
-
-CFLAGS = -g -D_POSIX_C_SOURCE=200811L -DVERSION='"${VERSION}"' \
-	-I'${LIBSODIUM}/include' \
-	-Wall -Wextra -std=c99 --pedantic
-LDFLAGS = -L'${LIBSODIUM}/lib' -static
-
-PREFIX = /usr/local
-MANPREFIX = ${PREFIX}/man
+MAN1 = passlock.1
 
 all: ${BIN}
 
 .c.o:
 	${CC} -c ${CFLAGS} -o $@ $<
 
-${OBJ}: ${HDR}
+${OBJ} ${BIN:=.o}: Makefile ${HDR}
+
 ${BIN}: ${OBJ} ${BIN:=.o}
 	${CC} ${LDFLAGS} -o $@ $@.o ${OBJ} ${LIB}
 
 clean:
-	rm -rf *.o ${BIN} ${NAME}-${VERSION} *.gz
+	rm -rf *.o ${BIN} ${NAME}-${VERSION} *.tgz
 
-install:
+install: ${BIN}
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -rf ${BIN} ${DESTDIR}${PREFIX}/bin
+	cp -f ${BIN} ${DESTDIR}${PREFIX}/bin
 	mkdir -p ${DESTDIR}${MANPREFIX}/man1
-	cp -rf *.1 ${DESTDIR}${MANPREFIX}/man1
+	cp -f ${MAN1} ${DESTDIR}${MANPREFIX}/man1
 
-dist: clean
-	mkdir -p ${NAME}-${VERSION}
-	cp -r README.md Makefile *.[ch] ${MAN1} ${NAME}-${VERSION}
-	tar -cf - ${NAME}-${VERSION} | gzip -c >${NAME}-${VERSION}.tar.gz
+dist:
+	git archive v${VERSION} --prefix=${NAME}-${VERSION}/ \
+	| gzip >${NAME}-${VERSION}.tgz
 
-site: dist
+site:
 	notmarkdown README.md | notmarkdown-html | cat .head.html - >index.html
 	notmarkdown README.md | notmarkdown-gph | cat .head.gph - >index.gph
 	sed -i "s/VERSION/${VERSION}/g" index.*
+	mkdir -p man
+	mandoc -Thtml -Ofragment ${MAN1} | cat .head.html - >man/index.html
+	mandoc -Tutf8 ${MAN1} | ul -t dumb >man/index.gph
