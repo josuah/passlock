@@ -1,8 +1,7 @@
 *.o
 *.a
 *.core
-*.gz
-/passlock-*[!.]?
+*.tgz
 /passlock-[0-9]*
 /index.*
-/style.css
+/man

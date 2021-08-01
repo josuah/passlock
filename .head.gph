@@ -1,3 +1,3 @@
-[9|release vVERSION|/passlock/passlock-VERSION.tar.gz|server|port]
+[9|release vVERSION|/passlock/passlock-VERSION.tgz|server|port]
 [h|git clone git://code.z0.is/passlock/|URL:git://code.z0.is/passlock/||]
 [h|web version|URL:http://code.z0.is/passlock/||]
