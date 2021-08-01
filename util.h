@@ -4,7 +4,8 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-char *arg0;
+extern char *arg0;
+
 void die(char const *fmt, ...);
 void warn(char const *fmt, ...);
 void debug(char const *fmt, ...);

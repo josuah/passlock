@@ -77,7 +77,7 @@ main(int argc, char **argv)
 		die("reading stdin");
 	strchomp(pass);
 
-	info("hashing password");
+	warn("hashing password");
 	if (crypto_pwhash_str(hash, pass, strlen(pass),
 	  crypto_pwhash_OPSLIMIT_INTERACTIVE,
 	  crypto_pwhash_MEMLIMIT_INTERACTIVE) < 0)

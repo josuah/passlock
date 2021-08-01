@@ -110,7 +110,7 @@ main(int argc, char **argv)
 	}
 	free(hash);
 
-	info("user could log in: '%s', executing %s", user, *argv);
+	warn("user could log in: '%s', executing %s", user, *argv);
 	if (chdir(path_home) < 0)
 		die("chdir %s", path_home);
 	if (setenv("HOME", path_home, 1) < 0)
