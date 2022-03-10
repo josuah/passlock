@@ -1,5 +1,7 @@
 PassLock
 ========
+`git://git.josuah.net/passlock` - [0.1](/passlock/passlock-0.1.tgz)
+
 PassLock is a backend for [checkpassword][1], a generic and simple password
 checking interface.
 
